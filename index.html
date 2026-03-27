@@ -1854,8 +1854,8 @@ function saveEmail(customer, newEmail) {
 }
 
 function toggleEmailEdit(customer, context) {
-  const id = `email-display-${context}-${customer.replace(/\s/g,'-')}`;
-  const editId = `email-edit-${context}-${customer.replace(/\s/g,'-')}`;
+  const id = context.startsWith('rem-') ? `email-display-${context}` : `email-display-${context}-${customer.replace(/\s/g,'-')}`;
+  const editId = context.startsWith('rem-') ? `email-edit-${context}` : `email-edit-${context}-${customer.replace(/\s/g,'-')}`;
   const d = document.getElementById(id);
   const e = document.getElementById(editId);
   if (d && e) {
@@ -1930,7 +1930,7 @@ function buildReminderList(filteredHotels) {
     group.forEach(h => {
       const s = reminderState[h.code] || {selected: true, sent: false, cleared: false};
       const email = getEmail(h.customer);
-      const cKey = h.customer.replace(/\s/g,'-');
+      const cKey = h.code.replace(/\s/g,'-');
       html += `<div class="check-row ${s.selected ? 'selected' : ''}" id="row-${h.code.replace(/\s/g,'-')}" style="margin-bottom:6px">
         <input type="checkbox" ${s.selected ? 'checked' : ''} onchange="toggleReminder('${h.code}', this.checked)" ${s.cleared ? 'disabled' : ''}>
         <div class="check-label" style="flex:1">
@@ -1946,12 +1946,12 @@ function buildReminderList(filteredHotels) {
           </div>
           <div class="email-row" id="email-display-rem-${cKey}" style="display:flex">
             <div class="email-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${email}</div>
-            <button class="edit-email-btn" onclick="toggleEmailEdit('${h.customer}','rem')">Edit</button>
+            <button class="edit-email-btn" onclick="toggleEmailEdit('${h.customer}','rem-${cKey}')">Edit</button>
           </div>
           <div class="email-edit-inline" id="email-edit-rem-${cKey}" style="display:none">
             <input class="email-input-field" type="email" placeholder="${email}" value="${email}">
             <button class="email-save-btn" onclick="saveEmail('${h.customer}', this.previousElementSibling.previousElementSibling.value)">Save</button>
-            <button class="email-cancel-btn" onclick="toggleEmailEdit('${h.customer}','rem')">Cancel</button>
+            <button class="email-cancel-btn" onclick="toggleEmailEdit('${h.customer}','rem-${cKey}')">Cancel</button>
           </div>
         </div>
         <div class="check-actions">
