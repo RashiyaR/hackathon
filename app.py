@@ -4,12 +4,7 @@ import snowflake.connector
 import os
 
 app = Flask(__name__)
-CORS(app)  # Allows the dashboard to call this API from the browser
-
-# ============================================================
-# SNOWFLAKE CREDENTIALS — same as before
-# ============================================================
-
+CORS(app)
 
 def get_connection():
     return snowflake.connector.connect(
@@ -20,9 +15,6 @@ def get_connection():
         database=os.environ.get("SF_DATABASE", "HACKATHON"),
         schema=os.environ.get("SF_SCHEMA", "PUBLIC"),
     )
-def get_connection():
-    return snowflake.connector.connect(**SNOWFLAKE_CONFIG)
-
 
 @app.route("/api/customers", methods=["GET"])
 def get_customers():
@@ -36,7 +28,6 @@ def get_customers():
     data = [dict(zip(columns, row)) for row in rows]
     return jsonify(data)
 
-
 @app.route("/api/hotels", methods=["GET"])
 def get_hotels():
     conn = get_connection()
@@ -49,11 +40,9 @@ def get_hotels():
     data = [dict(zip(columns, row)) for row in rows]
     return jsonify(data)
 
-
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
