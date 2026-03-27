@@ -1,0 +1,2779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Portfolio Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f0f2f5;
+    --surface: #ffffff;
+    --surface2: #f4f6f9;
+    --surface3: #e8ecf2;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text: #111827;
+    --text2: #4b5563;
+    --text3: #9ca3af;
+    --accent: #3b6ef0;
+    --accent2: #2558d9;
+    --green: #059669;
+    --green-bg: rgba(5,150,105,0.08);
+    --amber: #d97706;
+    --amber-bg: rgba(217,119,6,0.08);
+    --red: #dc2626;
+    --red-bg: rgba(220,38,38,0.07);
+    --teal: #0891b2;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  html { font-size: 14px; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* Layout */
+  .app { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .nav { padding: 16px 12px; flex: 1; }
+
+  .nav-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text3);
+    padding: 0 8px;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+
+  .nav-label:first-child { margin-top: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text2);
+    transition: all 0.15s;
+    user-select: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+
+  .nav-item.active {
+    background: rgba(59,110,240,0.08);
+    color: var(--accent);
+  }
+
+  .nav-item svg { width: 15px; height: 15px; opacity: 0.7; flex-shrink: 0; }
+  .nav-item.active svg { opacity: 1; }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--red-bg);
+    color: var(--red);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  /* Main */
+  .main {
+    margin-left: 220px;
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    height: auto;
+    min-height: 56px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    background: rgba(240,242,245,0.96);
+    backdrop-filter: blur(8px);
+    z-index: 50;
+  }
+
+  .topbar-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    flex-wrap: wrap;
+  }
+
+  .topbar-filter-label {
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .topbar-select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 5px 28px 5px 10px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    transition: border-color 0.15s;
+    min-width: 160px;
+  }
+
+  .topbar-select:focus { border-color: var(--accent); }
+  .topbar-select:hover { border-color: var(--border2); }
+
+  .filter-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border2);
+    margin: 0 4px;
+  }
+
+  .filter-active-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: rgba(59,110,240,0.1);
+    color: var(--accent);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .filter-active-badge:hover { background: rgba(59,110,240,0.18); }
+  .filter-active-badge svg { width: 10px; height: 10px; }
+
+  .topbar-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .topbar-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-left: 2px;
+  }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .pill-green { background: var(--green-bg); color: var(--green); }
+  .pill-amber { background: var(--amber-bg); color: var(--amber); }
+  .pill-red { background: var(--red-bg); color: var(--red); }
+  .pill-blue { background: rgba(59,110,240,0.10); color: var(--accent2); }
+  .pill-gray { background: var(--surface2); color: var(--text2); }
+
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* Content */
+  .content { padding: 28px; flex: 1; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Section title */
+  .section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    margin-bottom: 12px;
+    margin-top: 28px;
+  }
+
+  .section-title:first-child { margin-top: 0; }
+
+  /* KPI Grid */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0.4;
+  }
+
+  .kpi-card.danger::before { background: var(--red); opacity: 0.7; }
+  .kpi-card.warn::before { background: var(--amber); opacity: 0.6; }
+  .kpi-card.success::before { background: var(--green); opacity: 0.5; }
+
+  .kpi-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .kpi-val {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .kpi-card.danger .kpi-val { color: var(--red); }
+  .kpi-card.warn .kpi-val { color: var(--amber); }
+  .kpi-card.success .kpi-val { color: var(--green); }
+
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+  }
+
+  /* Charts grid */
+  .chart-grid-3-2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .chart-grid-2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .chart-grid-3 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title span { color: var(--text3); font-size: 11px; font-weight: 400; }
+
+  /* Chart wrapper */
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* Custom legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Product adoption bars */
+  .prod-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .prod-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .prod-name {
+    font-size: 12px;
+    color: var(--text2);
+    width: 150px;
+    flex-shrink: 0;
+  }
+
+  .prod-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .prod-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .prod-pct {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    width: 34px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .prod-count {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Alert banner */
+  .alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .alert-red {
+    background: var(--red-bg);
+    border: 1px solid rgba(220,38,38,0.2);
+    color: var(--red);
+  }
+
+  .alert-icon {
+    width: 16px; height: 16px; flex-shrink: 0;
+  }
+
+  /* Table */
+  .tbl-wrap { overflow-x: auto; }
+
+  table.tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .tbl th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text3);
+    font-weight: 500;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .tbl td {
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: middle;
+  }
+
+  .tbl tr:last-child td { border-bottom: none; }
+
+  .tbl tr:hover td { background: var(--surface2); }
+
+  .tbl td.strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .tbl td.mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+  }
+
+  /* Progress mini */
+  .mini-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mini-bar-track {
+    width: 70px;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .mini-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+
+  /* Overdue severity */
+  .severity {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .severity-critical { background: rgba(248,113,113,0.15); color: var(--red); }
+  .severity-high { background: rgba(251,191,36,0.15); color: var(--amber); }
+  .severity-medium { background: rgba(251,191,36,0.08); color: #d97706; }
+
+  /* Reminder pips */
+  .rem-pips { display: flex; gap: 3px; }
+  .rem-pip {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--surface3);
+  }
+
+  .rem-pip.sent { background: var(--amber); }
+
+  /* Scroll area */
+  .scroll-area { max-height: 560px; overflow-y: auto; }
+  .scroll-area thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+    box-shadow: 0 1px 0 var(--border);
+  }
+
+  .scroll-area::-webkit-scrollbar { width: 4px; }
+  .scroll-area::-webkit-scrollbar-track { background: transparent; }
+  .scroll-area::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .filter-btn:hover { border-color: var(--border2); color: var(--text); }
+  .filter-btn.active { background: rgba(59,110,240,0.10); border-color: rgba(59,110,240,0.3); color: var(--accent2); }
+
+  /* Search */
+  .search-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 12px;
+    font-size: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    width: 220px;
+    transition: border-color 0.15s;
+  }
+
+  .search-input::placeholder { color: var(--text3); }
+  .search-input:focus { border-color: var(--border2); }
+
+  /* Staggered animation */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate { animation: fadeInUp 0.3s ease both; }
+
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.10s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.20s; }
+
+  /* Summary numbers inside donut */
+  .donut-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .donut-center-num {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .donut-center-lbl {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* 2-col stats */
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .stat-row:last-child { border-bottom: none; }
+
+  .stat-label { color: var(--text2); }
+
+  .stat-val {
+    font-family: 'DM Mono', monospace;
+    color: var(--text);
+    font-size: 12px;
+  }
+
+  .topbar-date {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Action buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: var(--radius); font-size: 12px;
+    font-weight: 500; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn svg { width: 13px; height: 13px; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+  .btn-danger:hover { background: rgba(220,38,38,0.2); }
+  .btn-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(251,191,36,0.25); }
+  .btn-amber:hover { background: rgba(251,191,36,0.2); }
+  .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border2); }
+  .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 6px; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Check rows */
+  .check-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface);
+    margin-bottom: 6px; transition: border-color 0.15s;
+  }
+  .check-row:hover { border-color: var(--border2); }
+  .check-row.selected { border-color: rgba(59,110,240,0.4); background: rgba(59,110,240,0.06); }
+  .check-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+  .check-label { flex: 1; }
+  .check-label-main { font-size: 13px; font-weight: 500; color: var(--text); }
+  .check-label-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .check-actions { display: flex; gap: 6px; align-items: center; }
+
+  /* Toast notification */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 12px 16px;
+    font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    animation: slideIn 0.2s ease; min-width: 280px;
+  }
+  .toast.success { border-color: rgba(5,150,105,0.3); }
+  .toast.danger { border-color: rgba(220,38,38,0.3); }
+  .toast-icon { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .toast.success .toast-icon { background: var(--green); }
+  .toast.danger .toast-icon { background: var(--red); }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* Action log */
+  .action-log { max-height: 200px; overflow-y: auto; }
+  .log-entry {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+  }
+  .log-entry:last-child { border-bottom: none; }
+  .log-time { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); flex-shrink: 0; padding-top: 1px; }
+  .log-msg { color: var(--text2); line-height: 1.4; }
+  .log-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+
+  /* AI section */
+  .ai-prompt-area {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    display: flex; gap: 10px; align-items: flex-end; margin-bottom: 16px;
+  }
+  .ai-textarea {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text);
+    resize: none; min-height: 40px; max-height: 120px; line-height: 1.5;
+  }
+  .ai-textarea::placeholder { color: var(--text3); }
+
+  .ai-response {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px 22px;
+    font-size: 13px; line-height: 1.7; color: var(--text2);
+    margin-bottom: 12px; min-height: 80px;
+  }
+  .ai-response h3 { font-size: 13px; font-weight: 600; color: var(--text); margin: 14px 0 6px; }
+  .ai-response h3:first-child { margin-top: 0; }
+  .ai-response ul { padding-left: 18px; margin: 6px 0; }
+  .ai-response li { margin-bottom: 4px; }
+  .ai-response strong { color: var(--text); font-weight: 500; }
+  .ai-response .ai-chip {
+    display: inline-block; background: rgba(59,110,240,0.10); color: var(--accent2);
+    font-size: 11px; padding: 1px 8px; border-radius: 20px; margin: 0 2px;
+  }
+
+  .ai-thinking {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text3); padding: 8px 0;
+  }
+  .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease infinite; }
+  .ai-dot:nth-child(2) { animation-delay: 0.2s; }
+  .ai-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,80%,100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+
+  .ai-chip-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .ai-quick-btn {
+    font-size: 11px; padding: 5px 12px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .ai-quick-btn:hover { border-color: rgba(59,110,240,0.4); color: var(--accent2); background: rgba(59,110,240,0.06); }
+
+  .health-score {
+    display: flex; align-items: center; gap: 14px; padding: 16px 20px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+  }
+  .score-ring { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-label { position: absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
+  .score-num { font-size: 18px; font-weight: 600; color: var(--text); }
+  .score-of { font-size: 9px; color: var(--text3); }
+  .health-detail { flex: 1; }
+  .health-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .health-sub { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  .insight-card {
+    padding: 14px 16px; border-radius: var(--radius);
+    border-left: 3px solid transparent; margin-bottom: 8px;
+    background: var(--surface2);
+  }
+  .insight-card.critical { border-color: var(--red); }
+  .insight-card.warning { border-color: var(--amber); }
+  .insight-card.positive { border-color: var(--green); }
+  .insight-card.info { border-color: var(--accent); }
+  .insight-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .insight-desc { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+  /* Email editor inline */
+  .email-row {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 4px;
+  }
+  .email-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--accent); font-family: 'DM Mono', monospace;
+    background: rgba(59,110,240,0.07); padding: 2px 8px; border-radius: 20px;
+  }
+  .email-badge svg { width: 11px; height: 11px; opacity: 0.7; }
+  .edit-email-btn {
+    font-size: 10px; padding: 2px 7px; border-radius: 6px;
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .edit-email-btn:hover { color: var(--accent); border-color: rgba(59,110,240,0.3); background: rgba(59,110,240,0.05); }
+
+  .email-edit-inline {
+    display: flex; align-items: center; gap: 6px; margin-top: 4px;
+  }
+  .email-input-field {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--text); background: var(--surface);
+    border: 1px solid var(--accent); border-radius: 6px;
+    padding: 3px 8px; outline: none; width: 220px;
+    transition: border-color 0.15s;
+  }
+  .email-input-field:focus { border-color: var(--accent2); }
+  .email-save-btn {
+    font-size: 10px; padding: 3px 9px; border-radius: 6px;
+    background: var(--accent); color: #fff; border: none;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  .email-save-btn:hover { background: var(--accent2); }
+  .email-cancel-btn {
+    font-size: 10px; padding: 3px 9px; border-radius: 6px;
+    background: transparent; color: var(--text3);
+    border: 1px solid var(--border2); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  }
+  .email-cancel-btn:hover { color: var(--text); }
+
+  /* Resume button */
+  .btn-sf {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px; border-radius: var(--radius);
+    font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; border: 1px solid #0070d2;
+    background: #0070d2; color: #fff;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-sf:hover { background: #005fb2; border-color: #005fb2; }
+  .btn-sf:active { transform: scale(0.98); }
+  .btn-sf svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .btn-sf.syncing { opacity: 0.75; cursor: not-allowed; }
+  .btn-sf.syncing svg { animation: spin 0.9s linear infinite; }
+  .btn-sf.done { background: var(--green); border-color: var(--green); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .sync-status {
+    font-size: 11px; color: var(--text3);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .sync-status .sync-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+  }
+
+  .btn-resume {
+    background: rgba(5,150,105,0.08); color: var(--green);
+    border: 1px solid rgba(5,150,105,0.25);
+  }
+  .btn-resume:hover { background: rgba(5,150,105,0.15); }
+</style>
+</head>
+<body>
+<script>
+// Early stub — nav buttons fire before the main script loads on large files.
+// This queue replays calls once the real showPage is ready.
+window._pageQueue = [];
+window.showPage = function(id) { window._pageQueue.push(id); };
+window.syncSalesforce = function() {};
+window.previewEmail = function() {};
+window.sendSelectedReminders = function() {};
+window.bulkAction = function() {};
+document.addEventListener('DOMContentLoaded', function() {
+  // Real implementations are defined in the main script block.
+  // Once DOM is ready the main script has run, so replay any queued calls.
+  if (window._pageQueue.length) {
+    var last = window._pageQueue[window._pageQueue.length - 1];
+    // Find the nav button for this page and simulate a click
+    var btn = document.querySelector('.nav-item[onclick*="' + last + '"]');
+    if (btn) btn.click();
+    window._pageQueue = [];
+  }
+});
+</script>
+<div class="app">
+
+  <!-- Sidebar -->
+<div id="loadingOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation:spin 1s linear infinite"><circle cx="20" cy="20" r="16" stroke="#e5e7eb" stroke-width="4"/><path d="M20 4a16 16 0 0116 16" stroke="#3b6ef0" stroke-width="4" stroke-linecap="round"/></svg>
+  <div style="font-family:DM Sans,sans-serif;font-size:14px;color:#4b5563">Loading data from Snowflake...</div>
+  <div style="font-family:DM Mono,monospace;font-size:11px;color:#9ca3af">HACKATHON.PUBLIC</div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</div>
+  <aside class="sidebar">
+    <div class="logo" style="padding:18px 20px 16px">
+      <img src="data:image/png;base64,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" alt="Otelier" style="height:32px;width:auto;display:block">
+      <div class="logo-sub" style="margin-top:6px">Portfolio Hub</div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-label">Analytics</div>
+      <button class="nav-item active" onclick="showPage('overview',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </button>
+      <button class="nav-item" onclick="showPage('hotels',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Hotels
+      </button>
+
+      <div class="nav-label">Actions</div>
+      <button class="nav-item" onclick="showPage('reminders',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.21 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
+        Reminders & Suspensions
+        <span class="nav-badge" id="reminderBadge">22</span>
+      </button>
+      <button class="nav-item" onclick="showPage('products',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Product Adoption
+      </button>
+
+      <div class="nav-label">Intelligence</div>
+      <button class="nav-item" onclick="showPage('ai',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        AI Health Center
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      Data as of Mar 2026
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:16px;flex:1;flex-wrap:wrap;padding:8px 0">
+        <span class="topbar-title" id="page-title">Portfolio Overview</span>
+
+        <div class="filter-divider" id="filterDivider"></div>
+
+        <div class="topbar-filters" id="filterPanel">
+          <span class="topbar-filter-label">Customer</span>
+          <select class="topbar-select" id="globalCustomerFilter" onchange="applyGlobalFilters()">
+            <option value="all">All customers</option>
+            <option value="Belmond Hotels">Belmond Hotels</option>
+            <option value="Distinction">Distinction</option>
+            <option value="Highgate Hotels">Highgate Hotels</option>
+            <option value="HighTech Hospitality">HighTech Hospitality</option>
+            <option value="Lunar Hotel">Lunar Hotel</option>
+            <option value="Pinnacle Hotel">Pinnacle Hotel</option>
+            <option value="Rotana Hotels">Rotana Hotels</option>
+            <option value="Solar Hotel">Solar Hotel</option>
+            <option value="Stonehill Hotels">Stonehill Hotels</option>
+            <option value="Village Hotels">Village Hotels</option>
+          </select>
+
+          <span class="topbar-filter-label">Hotel</span>
+          <select class="topbar-select" id="globalHotelFilter" onchange="applyGlobalFilters()" style="min-width:200px">
+            <option value="all">All hotels</option>
+          </select>
+
+          <span id="activeFilterBadge" style="display:none">
+            <span class="filter-active-badge" onclick="clearGlobalFilters()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Clear filters
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <span class="topbar-date">March 26, 2026</span>
+        <span class="pill pill-green" id="topbarActive"><span class="dot"></span> <span id="topbarActiveCount">64</span> Active</span>
+        <span class="pill pill-red" id="topbarOverdue"><span class="dot"></span> <span id="topbarOverdueCount">22</span> Overdue</span>
+
+        <!-- Notification bell -->
+        <div style="position:relative" id="notifWrapper">
+          <button id="notifBtn" onclick="toggleNotifPanel()" style="position:relative;background:none;border:none;cursor:pointer;color:var(--text2);padding:6px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;transition:background 0.15s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span id="notifBadge" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:20px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1">2</span>
+          </button>
+
+          <!-- Dropdown panel -->
+          <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.14);z-index:200;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--border)">
+              <span style="font-size:13px;font-weight:500;color:var(--text)">Notifications</span>
+              <button onclick="markAllRead()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif">Mark all read</button>
+            </div>
+            <div id="notifList" style="max-height:380px;overflow-y:auto"></div>
+            <div style="padding:10px 16px;border-top:1px solid var(--border);text-align:center">
+              <span style="font-size:11px;color:var(--text3)">Showing offboarded hotels</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ==================== OVERVIEW ==================== -->
+      <div class="page active" id="page-overview">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="section-title" style="margin:0">Key metrics</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="sync-status" id="syncStatus" style="display:none">
+              <span class="sync-dot"></span>
+              <span id="syncStatusText">Last synced just now</span>
+            </div>
+            <button class="btn-sf" id="sfSyncBtn" onclick="syncSalesforce()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+              Sync Salesforce
+            </button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card animate">
+            <div class="kpi-label">Total ARR</div>
+            <div class="kpi-val">$864.6K</div>
+            <div class="kpi-sub">10 customers · 79 hotels</div>
+          </div>
+          <div class="kpi-card success animate">
+            <div class="kpi-label">Active hotels</div>
+            <div class="kpi-val">64</div>
+            <div class="kpi-sub">81% of portfolio</div>
+          </div>
+          <div class="kpi-card warn animate">
+            <div class="kpi-label">ARR at risk</div>
+            <div class="kpi-val">$236.4K</div>
+            <div class="kpi-sub">27.3% of total ARR</div>
+          </div>
+          <div class="kpi-card danger animate">
+            <div class="kpi-label">Overdue hotels</div>
+            <div class="kpi-val">22</div>
+            <div class="kpi-sub">3 customers affected</div>
+          </div>
+        </div>
+
+        <div class="section-title">ARR & status</div>
+        <div class="chart-grid-3-2">
+          <div class="card">
+            <div class="card-title">ARR by customer <span>active only</span></div>
+            <div class="chart-wrap" style="height:220px">
+              <canvas id="arrBarChart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Hotel status</div>
+            <div style="position:relative">
+              <div class="chart-wrap" style="height:170px">
+                <canvas id="statusDonut"></canvas>
+              </div>
+              <div class="donut-center">
+                <div class="donut-center-num" id="statusDonutCenter">79</div>
+                <div class="donut-center-lbl">total</div>
+              </div>
+            </div>
+            <div class="legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#059669"></div><span id="legendActive">Active 64</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div><span id="legendSoftActive">Soft active 9</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#d1d5db"></div><span id="legendInactive">Offboarded 6</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Collections snapshot</div>
+        <div class="chart-grid-3-2">
+          <div class="card">
+            <div class="card-title">Overdue accounts <span>by severity</span></div>
+            <div class="alert alert-red">
+              <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+              $236,400 ARR outstanding — immediate escalation recommended for Stonehill Hotels (120 days)
+            </div>
+            <table class="tbl">
+              <thead><tr><th>Customer</th><th>Hotels</th><th>ARR at risk</th><th>Age</th><th>Reminders</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="strong">Stonehill Hotels</td>
+                  <td>8 / 13</td>
+                  <td class="mono" style="color:var(--red)">$84,000</td>
+                  <td><span class="severity severity-critical">120 days</span></td>
+                  <td><div class="rem-pips"><div class="rem-pip sent"></div><div class="rem-pip sent"></div><div class="rem-pip sent"></div></div></td>
+                </tr>
+                <tr>
+                  <td class="strong">Highgate Hotels</td>
+                  <td>9 / 9</td>
+                  <td class="mono" style="color:var(--amber)">$106,200</td>
+                  <td><span class="severity severity-high">60 days</span></td>
+                  <td><div class="rem-pips"><div class="rem-pip sent"></div><div class="rem-pip sent"></div><div class="rem-pip"></div></div></td>
+                </tr>
+                <tr>
+                  <td class="strong">Lunar Hotel</td>
+                  <td>5 / 5</td>
+                  <td class="mono" style="color:var(--amber)">$46,200</td>
+                  <td><span class="severity severity-medium">35 days</span></td>
+                  <td><div class="rem-pips"><div class="rem-pip sent"></div><div class="rem-pip"></div><div class="rem-pip"></div></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">Payment status</div>
+            <div style="position:relative">
+              <div class="chart-wrap" style="height:150px">
+                <canvas id="payDonut"></canvas>
+              </div>
+              <div class="donut-center">
+                <div class="donut-center-num" id="payDonutCenter">79</div>
+                <div class="donut-center-lbl">hotels</div>
+              </div>
+            </div>
+            <div class="legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#059669"></div><span id="legendPaid">Paid 51</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div><span id="legendNotPaid">Not paid 22</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#d1d5db"></div><span id="legendNA">N/A 6</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== COLLECTIONS ==================== -->
+      <!-- ==================== PRODUCTS ==================== -->
+      <div class="page" id="page-products">
+        <div class="section-title">Module adoption across 79 hotels</div>
+        <div class="chart-grid-2">
+          <div class="card">
+            <div class="card-title">Active module penetration</div>
+            <div class="prod-list" id="prodList"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Upsell opportunity</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Active revenue vs upsell opportunity revenue per product ($K).</div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;font-size:11px;color:var(--text2)">
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(59,110,240,0.2);display:inline-block;border:1px solid #3b6ef0"></span>Active revenue</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#3b6ef0;display:inline-block"></span>Upsell opportunity</span>
+            </div>
+            <div class="chart-wrap" style="height:200px">
+              <canvas id="upsellChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Product mix by customer</div>
+        <div class="card">
+          <div class="card-title">Active products per customer hotel</div>
+          <div class="chart-wrap" style="height:240px">
+            <canvas id="productMixChart"></canvas>
+          </div>
+          <div class="legend" style="margin-top:14px">
+            <div class="legend-item"><div class="legend-dot" style="background:#3b6ef0"></div>DigiAudit Plus</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#059669"></div>REC</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#0891b2"></div>IntelliSight</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div>TruePlan</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>MyP</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== HOTELS ==================== -->
+      <div class="page" id="page-hotels">
+        <div class="section-title">All hotels</div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <input class="search-input" type="text" placeholder="Search hotels..." oninput="filterHotels(this.value)">
+          <button class="filter-btn active" onclick="filterHotelStatus('all', this)">All (79)</button>
+          <button class="filter-btn" onclick="filterHotelStatus('active', this)">Active (64)</button>
+          <button class="filter-btn" onclick="filterHotelStatus('softactive', this)">Soft active (9)</button>
+          <button class="filter-btn" onclick="filterHotelStatus('inactive', this)">Offboarded (6)</button>
+          <button class="filter-btn" onclick="filterHotelStatus('overdue', this)">Overdue (22)</button>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:14px;font-size:11px;color:var(--text3)">
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent)"></span>Reminder sent</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--amber)"></span>Support susp.</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red)"></span>Service susp.</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#0891b2"></span>Re-enabled</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green)"></span>Active sub.</span>
+            <span style="color:var(--text3)">DA+ = DigiAudit Plus &nbsp;·&nbsp; IS = IntelliSight &nbsp;·&nbsp; TP = TruePlan</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="scroll-area">
+            <table class="tbl">
+              <thead><tr><th>Customer</th><th>Hotel name</th><th>Code</th><th>Status</th><th>Payment</th><th>Days overdue</th><th style="text-align:center">R1</th><th style="text-align:center">R2</th><th style="text-align:center">R3</th><th style="text-align:center" title="Support Suspended">Supp Susp</th><th style="text-align:center" title="Service Suspended">Serv Susp</th><th style="text-align:center" title="Service Re-enabled">Re-enabled</th><th style="text-align:center">DA+</th><th style="text-align:center">REC</th><th style="text-align:center">IS</th><th style="text-align:center">TP</th><th style="text-align:center">MyP</th></tr></thead>
+              <tbody id="hotelsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== ALERTS ==================== -->
+      <!-- ==================== REMINDERS & SUSPENSIONS ==================== -->
+      <div class="page" id="page-reminders">
+
+        <div class="chart-grid-3" style="margin-bottom:20px">
+          <div class="kpi-card">
+            <div class="kpi-label">Total reminders sent</div>
+            <div class="kpi-val" id="sentCount">—</div>
+            <div class="kpi-sub">across all overdue hotels</div>
+          </div>
+          <div class="kpi-card warn">
+            <div class="kpi-label">Support suspended</div>
+            <div class="kpi-val">8</div>
+            <div class="kpi-sub">hotels with support on hold</div>
+          </div>
+          <div class="kpi-card danger">
+            <div class="kpi-label">Service suspended</div>
+            <div class="kpi-val">4</div>
+            <div class="kpi-sub">hotels with full access removed</div>
+          </div>
+        </div>
+
+        <!-- Reminders section -->
+        <div class="section-title">Send reminders</div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title" style="margin-bottom:10px">
+            Overdue hotels
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="selectAllReminders(true)">Select all</button>
+              <button class="btn btn-ghost btn-sm" onclick="selectAllReminders(false)">Deselect all</button>
+              <button class="btn btn-ghost btn-sm" onclick="previewEmail('reminder')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Preview email
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="sendSelectedReminders()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send to selected
+              </button>
+            </div>
+          </div>
+          <div id="reminderList"></div>
+        </div>
+
+        <!-- Suspensions section -->
+        <div class="section-title">Suspend services</div>
+
+        <div class="chart-grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-title">Support suspension
+              <span style="color:var(--amber);font-size:11px">Notifies customers via email</span>
+            </div>
+            <div id="supportSuspendList"></div>
+            <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm" onclick="previewEmail('support-notice')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Preview notice email
+              </button>
+              <button class="btn btn-amber btn-sm" onclick="bulkAction('support')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send notice & suspend
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Service suspension
+              <span style="color:var(--red);font-size:11px">Full platform access removed</span>
+            </div>
+            <div id="serviceSuspendList"></div>
+            <div style="margin-top:14px">
+              <button class="btn btn-danger btn-sm" onclick="bulkAction('service')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                Suspend selected service
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Suspension history</div>
+        <div class="card" style="margin-bottom:20px">
+          <table class="tbl">
+            <thead><tr><th>Customer</th><th>Hotel</th><th>Type</th><th>Contact email</th><th>Initiated</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="suspensionHistory">
+              <tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">No suspensions initiated this session</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Action log -->
+        <div class="section-title">Action log</div>
+        <div class="card">
+          <div class="action-log" id="actionLog">
+            <div style="font-size:12px;color:var(--text3);text-align:center;padding:16px">No actions yet this session.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== AI HEALTH ==================== -->
+      <div class="page" id="page-ai">
+        <div class="section-title">Portfolio health score</div>
+
+        <div class="health-score">
+          <div class="score-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="6"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#d97706" stroke-width="6"
+                stroke-dasharray="163.4" stroke-dashoffset="57" stroke-linecap="round"/>
+            </svg>
+            <div class="score-label"><div class="score-num">65</div><div class="score-of">/100</div></div>
+          </div>
+          <div class="health-detail">
+            <div class="health-title">Moderate health — action required</div>
+            <div class="health-sub">27.3% of ARR is at risk due to overdue payments. Product adoption gaps in TruePlan and MyP represent untapped expansion. Stonehill Hotels at critical escalation threshold.</div>
+          </div>
+        </div>
+
+        <div class="section-title">Automated insights</div>
+        <div class="chart-grid-2" style="margin-bottom:0">
+          <div>
+            <div class="insight-card critical">
+              <div class="insight-title">🔴 Critical — Stonehill Hotels at 120 days</div>
+              <div class="insight-desc">All 3 reminders sent. $84K ARR at risk. Recommend immediate executive escalation and potential service suspension to prompt payment.</div>
+            </div>
+            <div class="insight-card warning">
+              <div class="insight-title">🟡 High risk — Highgate Hotels at 60 days</div>
+              <div class="insight-desc">9 hotels, $106.2K ARR (largest at-risk block). R2 sent. Escalate to R3 now and prepare support suspension notice.</div>
+            </div>
+            <div class="insight-card warning">
+              <div class="insight-title">🟡 Watch — Rotana Hotels soft active status</div>
+              <div class="insight-desc">10 hotels showing Soft Active across 8 hotels. No payment issues, but reduced engagement may signal churn risk. Recommend QBR.</div>
+            </div>
+          </div>
+          <div>
+            <div class="insight-card info">
+              <div class="insight-title">💡 Upsell — TruePlan at only 23% penetration</div>
+              <div class="insight-desc">61 hotels are not using TruePlan. If even 20 convert at average $3,600/yr, that's $72K incremental ARR. Target active, paying customers first.</div>
+            </div>
+            <div class="insight-card info">
+              <div class="insight-title">💡 Upsell — MyP adoption critical at 10%</div>
+              <div class="insight-desc">Only 8 of 79 hotels using MyP. This is the lowest adoption product. Consider bundled pricing incentive or demo campaign for top ARR customers.</div>
+            </div>
+            <div class="insight-card positive">
+              <div class="insight-title">✅ Strong — 84% IntelliSight + REC adoption</div>
+              <div class="insight-desc">Core product modules are well penetrated. 65/79 hotels active on REC and 66 on IntelliSight — strong foundation for retention and upsell conversations.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Ask the AI analyst</div>
+        <div class="ai-chip-bar">
+          <button class="ai-quick-btn" onclick="askAI('What are the top 3 actions I should take this week to reduce collection risk?')">Top actions this week</button>
+          <button class="ai-quick-btn" onclick="askAI('Which customers are at highest churn risk and why?')">Churn risk analysis</button>
+          <button class="ai-quick-btn" onclick="askAI('Give me a collections escalation strategy for Stonehill Hotels at 120 days past due with $84,000 ARR at risk.')">Stonehill escalation plan</button>
+          <button class="ai-quick-btn" onclick="askAI('What upsell opportunities exist across the portfolio and which customers should I prioritize?')">Upsell opportunities</button>
+          <button class="ai-quick-btn" onclick="askAI('Summarize the overall portfolio health in 3 sentences suitable for an executive briefing.')">Executive summary</button>
+        </div>
+        <div class="ai-prompt-area">
+          <textarea class="ai-textarea" id="aiInput" placeholder="Ask anything about your portfolio... e.g. 'Draft an escalation email for Highgate Hotels'" rows="2"></textarea>
+          <button class="btn btn-primary" onclick="sendAIQuery()" id="aiSendBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Ask
+          </button>
+        </div>
+        <div id="aiOutput"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Email Preview Modal -->
+<div id="emailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border2);width:100%;max-width:660px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.18)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:14px;font-weight:500;color:var(--text)" id="modalTitle">Email preview</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px" id="modalSubtitle">This is how the email will appear to recipients</div>
+      </div>
+      <button onclick="closeEmailModal()" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <!-- Version tabs — shown only for reminders -->
+    <div id="reminderVersionTabs" style="display:none;padding:10px 22px 0;border-bottom:1px solid var(--border);background:var(--surface2);gap:6px;display:none;align-items:center">
+      <span style="font-size:11px;color:var(--text3);margin-right:6px">View version:</span>
+      <button class="filter-btn active" id="tabR1" onclick="switchReminderTab(1,this)" style="font-size:11px;padding:4px 12px">
+        R1 — First reminder
+      </button>
+      <button class="filter-btn" id="tabR2" onclick="switchReminderTab(2,this)" style="font-size:11px;padding:4px 12px">
+        R2 — Second reminder
+      </button>
+      <button class="filter-btn" id="tabR3" onclick="switchReminderTab(3,this)" style="font-size:11px;padding:4px 12px">
+        R3 — Final reminder
+      </button>
+    </div>
+    <!-- Email chrome -->
+    <div style="padding:16px 22px;border-bottom:1px solid var(--border);background:var(--surface2)">
+      <div style="display:grid;grid-template-columns:50px 1fr;gap:4px;font-size:12px">
+        <span style="color:var(--text3)">From:</span><span style="color:var(--text)">Otelier Accounts &lt;<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f39290909c869d8780b39c87969f9a9681dd9a9c">[email&#160;protected]</a>&gt;</span>
+        <span style="color:var(--text3)">To:</span><span style="color:var(--accent);font-family:'DM Mono',monospace" id="modalTo">—</span>
+        <span style="color:var(--text3)">Subject:</span><span style="font-weight:500;color:var(--text)" id="modalSubject">—</span>
+      </div>
+    </div>
+    <!-- Email body -->
+    <div style="flex:1;overflow-y:auto;padding:22px 22px 0">
+      <div id="modalBody" style="font-size:13px;line-height:1.8;color:var(--text2)"></div>
+    </div>
+    <div style="padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+      <button class="btn btn-ghost btn-sm" onclick="closeEmailModal()">Close</button>
+      <button class="btn btn-primary btn-sm" id="modalSendBtn" onclick="sendFromModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send email
+      </button>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+let DATA = { roster: [], hotels: [] };
+
+async function loadDataFromAPI() {
+  const API = 'https://hackathon-api-esom.onrender.com';
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  try {
+    const [custRes, hotelRes] = await Promise.all([
+      fetch(API + '/api/customers'),
+      fetch(API + '/api/hotels')
+    ]);
+    const customers = await custRes.json();
+    const hotels = await hotelRes.json();
+
+    // Build roster from CUSTOMER_ARR
+    const rosterMap = {};
+    customers.forEach(c => {
+      const key = c.CUSTOMER;
+      if (!rosterMap[key]) {
+        rosterMap[key] = {
+          customer: c.CUSTOMER,
+          hotels: 0,
+          arr: 0,
+          status: c.CUSTOMER_STATUS || 'Active',
+          pay: c.PAYMENT_STATUS || 'Paid',
+          overdue: 0,
+          email: c.CUSTOMER_BILLING_CONTACT || ''
+        };
+      }
+      rosterMap[key].hotels += 1;
+      rosterMap[key].arr += Number(c.ARR_USD) || 0;
+      if (c.PAYMENT_STATUS === 'Not Paid' && c.DAYS_PAST_DUE) {
+        rosterMap[key].overdue += 1;
+      }
+    });
+    DATA.roster = Object.values(rosterMap);
+
+    // Build hotels from HOTEL_ARR
+    DATA.hotels = hotels.map(h => ({
+      customer: h.CUSTOMER,
+      hotel: h.HOTEL_NAME,
+      code: h.HOTEL_CODE,
+      status: h.HOTEL_STATUS || 'Active',
+      pay: h.PAYMENT_STATUS || 'Paid',
+      days: h.DAYS_PAST_DUE ? Number(h.DAYS_PAST_DUE) : null,
+      da: h.DIGIAUDIT_PLUS === 'Active',
+      rec: h.REC === 'Active',
+      is: h.INTELLISIGHT_PLATFORM === 'Active',
+      tp: h.TRUEPLAN === 'Active',
+      myp: h.MYP === 'Active',
+      suppSusp: !!h.SUPPORT_SUSPENDED && h.SUPPORT_SUSPENDED !== 'NaN',
+      servSusp: !!h.SERVICE_SUSPENDED && h.SERVICE_SUSPENDED !== 'NaN',
+      servReen: !!h.SERVICE_RE_ENABLED && h.SERVICE_RE_ENABLED !== 'NaN'
+    }));
+
+  } catch(e) {
+    console.error('API error:', e);
+    document.getElementById('loadingOverlay').innerHTML = '<div style="text-align:center;color:#dc2626"><strong>Could not load data from Snowflake</strong><br><small>' + e.message + '</small></div>';
+    return;
+  }
+  document.getElementById('loadingOverlay').style.display = 'none';
+  initDashboard();
+}
+
+
+function pillHtml(status) {
+  if (status === 'Active') return '<span class="pill pill-green"><span class="dot"></span>Active</span>';
+  if (status === 'Soft Active') return '<span class="pill pill-amber"><span class="dot"></span>Soft active</span>';
+  if (status === 'Offboarded') return '<span class="pill pill-gray"><span class="dot"></span>Offboarded</span>';
+  return status;
+}
+
+function payPillHtml(pay) {
+  if (pay === 'Paid') return '<span class="pill pill-green">Paid</span>';
+  if (pay === 'Not Paid') return '<span class="pill pill-red">Not paid</span>';
+  return '<span class="pill pill-gray">N/A</span>';
+}
+
+// Navigation
+const titles = {
+  overview: 'Portfolio Overview', collections: 'Collections & Overdue',
+  products: 'Product Adoption', hotels: 'Hotels',
+  reminders: 'Reminders & Suspensions', ai: 'AI Health Center'
+};
+
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (!page) return;
+  page.classList.add('active');
+  document.getElementById('page-title').textContent = titles[id] || id;
+  // Mark the clicked nav item active
+  const navBtn = btn || (typeof event !== 'undefined' && event.currentTarget) || document.querySelector('.nav-item[onclick*="' + id + '"]');
+  if (navBtn) navBtn.classList.add('active');
+
+  // Show global filters only on overview and hotels pages
+  const showFilters = id === 'overview' || id === 'hotels';
+  document.getElementById('filterDivider').style.display = showFilters ? 'block' : 'none';
+  document.getElementById('filterPanel').style.display = showFilters ? 'flex' : 'none';
+  window._pageQueue = [];
+}
+
+// Build tables
+function buildOverdueTable(hotels) {
+  const tbody = document.getElementById('overdueTableBody');
+  if (!tbody) return;
+  hotels = hotels || getFilteredHotels();
+  const rows = hotels.filter(h => h.days);
+  tbody.innerHTML = rows.map(h => {
+    const sev = h.days >= 120 ? 'severity-critical' : h.days >= 60 ? 'severity-high' : 'severity-medium';
+    return `<tr>
+      <td class="strong">${h.customer}</td>
+      <td>${h.hotel}</td>
+      <td class="mono" style="color:var(--text3)">${h.code}</td>
+      <td><span class="severity ${sev}">${h.days} days</span></td>
+      <td>${payPillHtml(h.pay)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildRosterTable(filter, rows) {
+  const tbody = document.getElementById('rosterTableBody');
+  if (!tbody) return;
+  rows = rows || getFilteredRoster();
+  if (filter === 'active') rows = rows.filter(r => r.status === 'Active');
+  if (filter === 'softactive') rows = rows.filter(r => r.status === 'Soft Active');
+  if (filter === 'overdue') rows = rows.filter(r => r.overdue > 0);
+  const maxArr = Math.max(...DATA.roster.map(r => r.arr));
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td class="strong">${r.customer}</td>
+    <td class="mono">${r.hotels}</td>
+    <td class="mono">$${(r.arr/1000).toFixed(0)}K</td>
+    <td>${pillHtml(r.status)}</td>
+    <td>${payPillHtml(r.pay)}</td>
+    <td class="mono" style="color:${r.overdue > 0 ? 'var(--red)' : 'var(--text3)'}">${r.overdue > 0 ? r.overdue : '—'}</td>
+    <td><div style="width:80px;height:4px;background:var(--surface2);border-radius:2px"><div style="height:100%;border-radius:2px;background:var(--accent);width:${Math.round(r.arr/maxArr*100)}%"></div></div></td>
+  </tr>`).join('');
+}
+
+function prodDot(active) {
+  return active
+    ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green)" title="Active"></span>`
+    : `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2)" title="Not subscribed"></span>`;
+}
+
+function remDot(sent) {
+  return sent
+    ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent)" title="Sent"></span>`
+    : `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2)" title="Not sent"></span>`;
+}
+
+function suspDot(active, color) {
+  return active
+    ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color}" title="Yes"></span>`
+    : `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2)" title="No"></span>`;
+}
+
+function buildHotelsTable(data) {
+  const tbody = document.getElementById('hotelsTableBody');
+  tbody.innerHTML = data.map(h => {
+    const rs = reminderState[h.code] || {r1Sent:false, r2Sent:false, r3Sent:false};
+    return `<tr>
+    <td>${h.customer}</td>
+    <td class="strong">${h.hotel}</td>
+    <td class="mono" style="color:var(--text3);font-size:11px">${h.code}</td>
+    <td>${pillHtml(h.status)}</td>
+    <td>${payPillHtml(h.pay)}</td>
+    <td class="mono" style="color:${h.days ? 'var(--red)' : 'var(--text3)'}">${h.days ? h.days + 'd' : '—'}</td>
+    <td style="text-align:center">${h.days ? remDot(rs.r1Sent) : '<span style="color:var(--text3);font-size:10px">—</span>'}</td>
+    <td style="text-align:center">${h.days ? remDot(rs.r2Sent) : '<span style="color:var(--text3);font-size:10px">—</span>'}</td>
+    <td style="text-align:center">${h.days ? remDot(rs.r3Sent) : '<span style="color:var(--text3);font-size:10px">—</span>'}</td>
+    <td style="text-align:center">${suspDot(h.suppSusp, 'var(--amber)')}</td>
+    <td style="text-align:center">${suspDot(h.servSusp, 'var(--red)')}</td>
+    <td style="text-align:center">${suspDot(h.servReen, '#0891b2')}</td>
+    <td style="text-align:center">${prodDot(h.da)}</td>
+    <td style="text-align:center">${prodDot(h.rec)}</td>
+    <td style="text-align:center">${prodDot(h.is)}</td>
+    <td style="text-align:center">${prodDot(h.tp)}</td>
+    <td style="text-align:center">${prodDot(h.myp)}</td>
+  </tr>`;
+  }).join('');
+}
+
+function buildProdList() {
+  const prods = [
+    {name:'IntelliSight Platform', count:66, color:'#0891b2'},
+    {name:'REC', count:65, color:'#059669'},
+    {name:'DigiAudit Plus', count:54, color:'#3b6ef0'},
+    {name:'TruePlan', count:18, color:'#d97706'},
+    {name:'MyP', count:8, color:'#dc2626'},
+  ];
+  document.getElementById('prodList').innerHTML = prods.map(p => `
+    <div class="prod-row">
+      <div class="prod-name">${p.name}</div>
+      <div class="prod-bar-wrap"><div class="prod-bar" style="width:${Math.round(p.count/79*100)}%;background:${p.color}"></div></div>
+      <div class="prod-pct">${Math.round(p.count/79*100)}%</div>
+      <div class="prod-count">${p.count}</div>
+    </div>`).join('');
+}
+
+// Filters
+function filterRoster(f, btn) {
+  if (btn) {
+    document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    btn.dataset.filter = f;
+  }
+  buildRosterTable(f, getFilteredRoster());
+}
+
+let currentHotelFilter = 'all';
+let currentSearch = '';
+
+function filterHotels(q) {
+  currentSearch = q.toLowerCase();
+  applyHotelFilter();
+}
+
+function filterHotelStatus(f, btn) {
+  document.querySelectorAll('#page-hotels .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentHotelFilter = f;
+  applyHotelFilter();
+}
+
+function applyHotelFilter() {
+  let rows = getFilteredHotels();
+  if (currentHotelFilter === 'active') rows = rows.filter(h => h.status === 'Active');
+  if (currentHotelFilter === 'softactive') rows = rows.filter(h => h.status === 'Soft Active');
+  if (currentHotelFilter === 'inactive') rows = rows.filter(h => h.status === 'Offboarded');
+  if (currentHotelFilter === 'overdue') rows = rows.filter(h => h.days);
+  if (currentSearch) rows = rows.filter(h => h.hotel.toLowerCase().includes(currentSearch) || h.customer.toLowerCase().includes(currentSearch));
+  buildHotelsTable(rows);
+}
+
+// Charts
+function initCharts() {
+  const textColor = 'rgba(75,85,99,0.8)';
+  const gridColor = 'rgba(0,0,0,0.06)';
+
+  // ARR bar chart
+  window.chartARR = new Chart(document.getElementById('arrBarChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Stonehill','Solar','Rotana','Highgate','Distinction','HighTech','Pinnacle','Lunar','Belmond','Village'],
+      datasets: [{
+        data: [174000,148800,118800,106200,75600,69600,49800,46200,45600,30000],
+        backgroundColor: ['#dc2626','#059669','#059669','#dc2626','#059669','#059669','#059669','#dc2626','#059669','#059669'],
+        borderRadius: 4, borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{label: c => '$'+c.raw.toLocaleString()} } },
+      scales: {
+        x: { ticks:{color:textColor,font:{size:10},maxRotation:35,autoSkip:false}, grid:{display:false} },
+        y: { ticks:{color:textColor,font:{size:10},callback:v=>'$'+(v/1000)+'K'}, grid:{color:gridColor} }
+      }
+    }
+  });
+
+  // Status donut
+  window.chartStatus = new Chart(document.getElementById('statusDonut'), {
+    type: 'doughnut',
+    data: {
+      datasets: [{data:[64,9,6], backgroundColor:['#059669','#d97706','#d1d5db'], borderWidth:0, hoverBorderWidth:0}]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>['Active','Soft Active','Offboarded'][c.dataIndex]+': '+c.raw}}} }
+  });
+
+  // Pay donut
+  window.chartPay = new Chart(document.getElementById('payDonut'), {
+    type: 'doughnut',
+    data: {
+      datasets: [{data:[51,22,6], backgroundColor:['#059669','#dc2626','#d1d5db'], borderWidth:0, hoverBorderWidth:0}]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>['Paid','Not Paid','N/A'][c.dataIndex]+': '+c.raw}}} }
+  });
+
+  // Upsell — grouped revenue bars (Active ARR vs Upsell Opportunity ARR)
+  new Chart(document.getElementById('upsellChart'), {
+    type: 'bar',
+    plugins: [ChartDataLabels],
+    data: {
+      labels: ['DigiAudit+','REC','IntelliSight','TruePlan','MyP'],
+      datasets: [
+        {
+          label: 'Active revenue',
+          data: [678, 783, 795, 295.2, 98.4],
+          backgroundColor: 'rgba(59,110,240,0.22)',
+          borderColor: 'rgba(59,110,240,0.4)',
+          borderWidth: 0,
+          borderRadius: 0,
+          borderSkipped: true,
+          stack: 'stack'
+        },
+        {
+          label: 'Upsell opportunity',
+          data: [186.6, 81.6, 69.6, 569.4, 766.2],
+          backgroundColor: '#3b6ef0',
+          borderRadius: { topLeft: 3, topRight: 3, bottomLeft: 0, bottomRight: 0 },
+          borderSkipped: false,
+          stack: 'stack'
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 4 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index',
+          callbacks: {
+            label: c => `${c.dataset.label}: $${c.raw.toLocaleString()}K`
+          }
+        },
+        datalabels: {
+          anchor: 'center',
+          align: 'center',
+          clip: true,
+          formatter: function(v, ctx) {
+            if (v < 50) return '';
+            return '$' + (Math.round(v * 10) / 10) + 'K';
+          },
+          font: { size: 9, weight: '600', family: "'DM Mono', monospace" },
+          color: function(ctx) {
+            return ctx.datasetIndex === 1 ? '#ffffff' : '#2558d9';
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: {color:textColor, font:{size:10}},
+          grid: {display:false}
+        },
+        y: {
+          stacked: true,
+          ticks: {color:textColor, font:{size:10}, callback: v => '$'+v+'K'},
+          grid: {color:gridColor}
+        }
+      }
+    }
+  });
+
+  // Product mix by customer (grouped)
+  new Chart(document.getElementById('productMixChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Stonehill','Solar','Rotana','Highgate','Distinction','HighTech','Pinnacle','Lunar','Belmond','Village'],
+      datasets: [
+        {label:'DigiAudit+', data:[13,13,8,8,6,8,4,3,4,2], backgroundColor:'#3b6ef0', borderRadius:2, borderSkipped:false},
+        {label:'REC', data:[11,13,10,9,7,10,4,5,4,2], backgroundColor:'#059669', borderRadius:2, borderSkipped:false},
+        {label:'IntelliSight', data:[13,13,9,9,8,10,4,5,4,2], backgroundColor:'#0891b2', borderRadius:2, borderSkipped:false},
+        {label:'TruePlan', data:[3,3,2,2,2,2,1,1,1,1], backgroundColor:'#d97706', borderRadius:2, borderSkipped:false},
+        {label:'MyP', data:[1,1,1,1,1,1,1,1,0,1], backgroundColor:'#dc2626', borderRadius:2, borderSkipped:false},
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:textColor,font:{size:10},maxRotation:35},grid:{display:false}},
+        y:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor}}
+      }
+    }
+  });
+}
+
+// Track which reminders were sent in this session (not pre-seeded history)
+const sessionSentReminders = new Set(); // stores "hotelCode_tier"
+
+function hasAllRemindersSent(h) {
+  // Only hide from the list if the current tier reminder was sent THIS session
+  const tier = getReminderTier(h.days);
+  return sessionSentReminders.has(h.code + '_' + tier);
+}
+let overdueHotels = DATA.hotels.filter(h => h.days);
+// reminderState pre-seeded from source data — rXSent reflects history, sent=false so checkboxes remain enabled
+let reminderStateInit = {
+  "Property Code 012": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: true},
+  "Property Code 013": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: true},
+  "Property Code 014": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: true},
+  "Property Code 015": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: true},
+  "Property Code 016": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: true},
+  "Property Code 017": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: true},
+  "Property Code 018": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: true},
+  "Property Code 019": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: true},
+  "Hotel Code 871253": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: false},
+  "Hotel Code 871268": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: false},
+  "Hotel Code 871269": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: false},
+  "Hotel Code 871283": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: false},
+  "Hotel Code 871297": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: false},
+  "Hotel Code 871309": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: false},
+  "Hotel Code 871327": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: false},
+  "Hotel Code 871340": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: false},
+  "Hotel Code 871344": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: true, r3Sent: false},
+  "Hotel Code 871356": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: false, r3Sent: false},
+  "Hotel Code 871363": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: false, r3Sent: false},
+  "Hotel Code 871392": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: false, r3Sent: false},
+  "Hotel Code 871412": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: false, r3Sent: false},
+  "Hotel Code 871414": {selected: true, sent: false, cleared: false, r1Sent: true, r2Sent: false, r3Sent: false}
+};
+let reminderState = {};
+overdueHotels.forEach(h => {
+  reminderState[h.code] = reminderStateInit[h.code] || {selected: true, sent: false, cleared: false, r1Sent: false, r2Sent: false, r3Sent: false};
+});
+
+// email overrides per customer (for employee turnover edits)
+const emailOverrides = {};
+
+function getEmail(customer) {
+  if (emailOverrides[customer]) return emailOverrides[customer];
+  const r = DATA.roster.find(x => x.customer === customer);
+  return r ? r.email : 'unknown\u0040email.com';
+}
+
+function saveEmail(customer, newEmail) {
+  if (!newEmail || !newEmail.includes('@')) { showToast('Invalid email address', 'danger'); return; }
+  emailOverrides[customer] = newEmail;
+  addLog(`Contact email updated for <strong>${customer}</strong> → ${newEmail}`, 'var(--accent)');
+  showToast(`Email updated for ${customer}`, 'success');
+  buildReminderList();
+  buildSuspendLists();
+}
+
+function toggleEmailEdit(customer, context) {
+  const id = `email-display-${context}-${customer.replace(/\s/g,'-')}`;
+  const editId = `email-edit-${context}-${customer.replace(/\s/g,'-')}`;
+  const d = document.getElementById(id);
+  const e = document.getElementById(editId);
+  if (d && e) {
+    d.style.display = d.style.display === 'none' ? 'flex' : 'none';
+    e.style.display = e.style.display === 'none' ? 'flex' : 'none';
+    if (e.style.display !== 'none') {
+      const inp = e.querySelector('input');
+      if (inp) { inp.value = getEmail(customer); inp.focus(); inp.select(); }
+    }
+  }
+}
+
+// Reminder tier thresholds
+function getReminderTier(days) {
+  if (days >= 120) return 3;
+  if (days >= 60)  return 2;
+  if (days >= 30)  return 1;
+  return 0; // not yet due for a reminder
+}
+
+function getReminderTierLabel(tier) {
+  return ['—', 'R1 — First reminder', 'R2 — Second reminder', 'R3 — Final reminder'][tier];
+}
+
+function getReminderTierColor(tier) {
+  return [null, '#b45309', '#d97706', '#dc2626'][tier];
+}
+
+function buildReminderList(filteredHotels) {
+  const source = filteredHotels ? filteredHotels.filter(h => h.days) : overdueHotels;
+  const el = document.getElementById('reminderList');
+
+  // Split into tiers: only show hotels that have reached their threshold AND still need a reminder
+  const ready = source.filter(h => {
+    if (!reminderState[h.code] || reminderState[h.code].cleared) return false;
+    const tier = getReminderTier(h.days);
+    if (tier === 0) return false;
+    return !hasAllRemindersSent(h); // hide if all applicable reminders already sent
+  });
+  const notReady = source.filter(h => getReminderTier(h.days) === 0 && (!reminderState[h.code] || !reminderState[h.code].cleared));
+
+  if (!ready.length && !notReady.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:20px;font-size:12px">No overdue hotels match the current filter.</div>';
+    return;
+  }
+
+  // Group ready hotels by tier
+  const tiers = [3, 2, 1];
+  let html = '';
+
+  tiers.forEach(tier => {
+    const group = ready.filter(h => getReminderTier(h.days) === tier);
+    if (!group.length) return;
+
+    const tierColor = getReminderTierColor(tier);
+    const tierLabel = getReminderTierLabel(tier);
+    const tierDesc = tier === 3 ? '120+ days overdue' : tier === 2 ? '60–119 days overdue' : '30–59 days overdue';
+
+    html += `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="display:inline-block;width:3px;height:16px;background:${tierColor};border-radius:2px"></span>
+          <span style="font-size:12px;font-weight:500;color:var(--text)">${tierLabel}</span>
+          <span style="font-size:11px;color:var(--text3)">${tierDesc} · ${group.length} propert${group.length !== 1 ? 'ies' : 'y'}</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="sendTierReminders(${tier})" style="font-size:11px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Send R${tier} to all
+        </button>
+      </div>`;
+
+    group.forEach(h => {
+      const s = reminderState[h.code] || {selected: true, sent: false, cleared: false};
+      const email = getEmail(h.customer);
+      const cKey = h.customer.replace(/\s/g,'-');
+      html += `<div class="check-row ${s.selected ? 'selected' : ''}" id="row-${h.code.replace(/\s/g,'-')}" style="margin-bottom:6px">
+        <input type="checkbox" ${s.selected ? 'checked' : ''} onchange="toggleReminder('${h.code}', this.checked)" ${s.cleared ? 'disabled' : ''}>
+        <div class="check-label" style="flex:1">
+          <div class="check-label-main">${h.hotel} <span style="font-weight:400;color:var(--text3);font-size:11px">— ${h.customer}</span></div>
+          <div class="check-label-sub" style="margin-bottom:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="color:${tierColor};font-weight:500">R${tier}</span>
+            <span style="color:${tierColor}">${h.days} days overdue</span>
+            <span style="color:var(--text3)">·</span>
+            <span style="color:var(--text3)">${h.code}</span>
+            ${sessionSentReminders.has(h.code+'_1') ? '<span class="pill pill-blue" style="font-size:9px;padding:1px 6px">R1 sent</span>' : ''}
+            ${sessionSentReminders.has(h.code+'_2') ? '<span class="pill pill-blue" style="font-size:9px;padding:1px 6px">R2 sent</span>' : ''}
+            ${sessionSentReminders.has(h.code+'_3') ? '<span class="pill pill-green" style="font-size:9px;padding:1px 6px">R3 sent</span>' : ''}
+          </div>
+          <div class="email-row" id="email-display-rem-${cKey}" style="display:flex">
+            <div class="email-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${email}</div>
+            <button class="edit-email-btn" onclick="toggleEmailEdit('${h.customer}','rem')">Edit</button>
+          </div>
+          <div class="email-edit-inline" id="email-edit-rem-${cKey}" style="display:none">
+            <input class="email-input-field" type="email" placeholder="${email}" value="${email}">
+            <button class="email-save-btn" onclick="saveEmail('${h.customer}', this.previousElementSibling.previousElementSibling.value)">Save</button>
+            <button class="email-cancel-btn" onclick="toggleEmailEdit('${h.customer}','rem')">Cancel</button>
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn btn-primary btn-sm" onclick="sendSingleReminder('${h.code}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send R${tier}</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearReminder('${h.code}')">Clear</button>
+        </div>
+      </div>`;
+    });
+  });
+
+  // Properties not yet at 30 days
+  if (notReady.length) {
+    html += `<div style="margin-top:16px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        ${notReady.length} hotel${notReady.length !== 1 ? 's' : ''} overdue but not yet at the 30-day reminder threshold — no action needed yet.
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function toggleReminder(code, val) {
+  reminderState[code].selected = val;
+  buildReminderList();
+}
+
+function selectAllReminders(val) {
+  overdueHotels.forEach(h => { if (!reminderState[h.code].cleared) reminderState[h.code].selected = val; });
+  buildReminderList();
+}
+
+// Count total reminders already sent from source data (r1Sent + r2Sent + r3Sent per hotel)
+function getSentCount() {
+  return overdueHotels.reduce((total, h) => {
+    const s = reminderState[h.code] || reminderStateInit[h.code];
+    if (!s) return total;
+    return total + (s.r1Sent ? 1 : 0) + (s.r2Sent ? 1 : 0) + (s.r3Sent ? 1 : 0);
+  }, 0);
+}
+let sentCount = 0;
+
+function sendSingleReminder(code) {
+  const h = overdueHotels.find(x => x.code === code);
+  const tier = getReminderTier(h.days);
+  const email = getEmail(h.customer);
+  reminderState[code]['r' + tier + 'Sent'] = true;
+  sessionSentReminders.add(code + '_' + tier);
+  reminderState[code].selected = false;
+  sentCount++;
+  sentCount = getSentCount(); document.getElementById('sentCount').textContent = sentCount;
+  addLog(`R${tier} reminder sent to <strong>${h.hotel}</strong> (${h.customer}) at <em>${email}</em> — ${h.days} days overdue`, 'var(--accent)');
+  showToast(`R${tier} reminder sent to ${email}`, 'success');
+  buildReminderList();
+  buildHotelsTable(getFilteredHotels());
+  updateReminderBadge();
+}
+
+function sendTierReminders(tier) {
+  const toSend = overdueHotels.filter(h => getReminderTier(h.days) === tier && reminderState[h.code].selected && !reminderState[h.code].cleared);
+  if (!toSend.length) { showToast(`No R${tier} hotels selected`, 'danger'); return; }
+  toSend.forEach(h => {
+    const email = getEmail(h.customer);
+    reminderState[h.code].selected = false;
+    reminderState[h.code]['r' + tier + 'Sent'] = true;
+    sessionSentReminders.add(h.code + '_' + tier);
+    sentCount++;
+    addLog(`R${tier} reminder sent to <strong>${h.hotel}</strong> (${h.customer}) at <em>${email}</em> — ${h.days} days overdue`, 'var(--accent)');
+  });
+  sentCount = getSentCount(); document.getElementById('sentCount').textContent = sentCount;
+  showToast(`R${tier} reminder sent to ${toSend.length} hotel${toSend.length !== 1 ? 's' : ''}`, 'success');
+  buildReminderList();
+  buildHotelsTable(getFilteredHotels());
+  updateReminderBadge();
+}
+
+function sendSelectedReminders() {
+  const selected = overdueHotels.filter(h => reminderState[h.code].selected && !reminderState[h.code].cleared && getReminderTier(h.days) > 0 && !hasAllRemindersSent(h));
+  if (!selected.length) { showToast('No hotels ready for reminders are selected', 'danger'); return; }
+
+  const byTier = {1:[], 2:[], 3:[]};
+  selected.forEach(h => {
+    const tier = getReminderTier(h.days);
+    byTier[tier].push(h);
+    const email = getEmail(h.customer);
+    reminderState[h.code].selected = false;
+    reminderState[h.code]['r' + tier + 'Sent'] = true;
+    sessionSentReminders.add(h.code + '_' + tier);
+    sentCount++;
+    addLog(`R${tier} reminder sent to <strong>${h.hotel}</strong> (${h.customer}) at <em>${email}</em>`, 'var(--accent)');
+  });
+
+  sentCount = getSentCount(); document.getElementById('sentCount').textContent = sentCount;
+  const summary = [1,2,3].filter(t => byTier[t].length).map(t => `${byTier[t].length}× R${t}`).join(', ');
+  showToast(`${selected.length} reminder${selected.length !== 1 ? 's' : ''} sent (${summary})`, 'success');
+  buildReminderList();
+  buildHotelsTable(getFilteredHotels());
+  updateReminderBadge();
+}
+
+function clearReminder(code) {
+  const h = overdueHotels.find(x => x.code === code);
+  reminderState[code].cleared = true;
+  reminderState[code].selected = false;
+  addLog(`${h.hotel} marked as cleared (no reminder needed)`, 'var(--green)');
+  buildReminderList();
+  updateReminderBadge();
+}
+
+function updateReminderBadge() {
+  const pending = overdueHotels.filter(h => !reminderState[h.code].cleared).length;
+  const badge = document.getElementById('reminderBadge');
+  if (badge) badge.textContent = pending;
+}
+
+// ==================== SUSPEND ====================
+let suspendState = {};
+overdueHotels.forEach(h => { suspendState[h.code] = {supportSelected: false, serviceSelected: false, supportDone: false, serviceDone: false}; });
+
+function buildSuspendLists(filteredHotels) {
+  const source = filteredHotels ? filteredHotels.filter(h => h.days) : overdueHotels;
+  const supportEl = document.getElementById('supportSuspendList');
+  const serviceEl = document.getElementById('serviceSuspendList');
+  const supportCandidates = source.filter(h => h.days >= 120);
+  const serviceCandidates = source.filter(h => h.days >= 60);
+
+  function suspendRow(h, type) {
+    const s = suspendState[h.code] || {supportSelected:false, serviceSelected:false, supportDone:false, serviceDone:false};
+    const isDone = type === 'support' ? s.supportDone : s.serviceDone;
+    const isSelected = type === 'support' ? s.supportSelected : s.serviceSelected;
+    const email = getEmail(h.customer);
+    const cKey = `${type}-${h.customer.replace(/\s/g,'-')}`;
+    return `<div class="check-row ${isSelected?'selected':''}" style="margin-bottom:6px">
+      <input type="checkbox" ${isSelected?'checked':''} onchange="toggleSuspend('${h.code}','${type}',this.checked)" ${isDone?'disabled':''}>
+      <div class="check-label" style="flex:1">
+        <div class="check-label-main" style="font-size:12px">${h.hotel}</div>
+        <div class="check-label-sub">${h.customer} · ${h.days}d overdue</div>
+        <div class="email-row" id="email-display-${cKey}" style="display:flex;margin-top:3px">
+          <div class="email-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${email}</div>
+          <button class="edit-email-btn" onclick="toggleEmailEdit('${h.customer}','${cKey}')">Edit</button>
+        </div>
+        <div class="email-edit-inline" id="email-edit-${cKey}" style="display:none">
+          <input class="email-input-field" type="email" value="${email}">
+          <button class="email-save-btn" onclick="saveEmail('${h.customer}', this.previousElementSibling.previousElementSibling.value)">Save</button>
+          <button class="email-cancel-btn" onclick="toggleEmailEdit('${h.customer}','${cKey}')">Cancel</button>
+        </div>
+      </div>
+      ${isDone ? `<span class="pill ${type==='support'?'pill-amber':'pill-red'}" style="font-size:10px">Suspended</span>` : ''}
+    </div>`;
+  }
+
+  if (supportCandidates.length) {
+    supportEl.innerHTML = supportCandidates.map(h => suspendRow(h, 'support')).join('');
+  } else {
+    supportEl.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0">No hotels at 120+ days overdue.</div>';
+  }
+
+  if (serviceCandidates.length) {
+    serviceEl.innerHTML = serviceCandidates.map(h => suspendRow(h, 'service')).join('');
+  } else {
+    serviceEl.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0">No hotels at 60+ days overdue.</div>';
+  }
+}
+
+function toggleSuspend(code, type, val) {
+  if (type === 'support') suspendState[code].supportSelected = val;
+  else suspendState[code].serviceSelected = val;
+  buildSuspendLists();
+}
+
+let suspensionHistory = [];
+
+function bulkAction(type, skipPreview) {
+  const candidates = type === 'support'
+    ? overdueHotels.filter(h => h.days >= 120 && suspendState[h.code].supportSelected && !suspendState[h.code].supportDone)
+    : overdueHotels.filter(h => h.days >= 60 && suspendState[h.code].serviceSelected && !suspendState[h.code].serviceDone);
+
+  if (!candidates.length) { showToast('No hotels selected', 'danger'); return; }
+
+  // For support: show preview first unless already coming from modal
+  if (type === 'support' && !skipPreview) {
+    previewEmail('support-notice');
+    return;
+  }
+
+  const label = type === 'support' ? 'Support' : 'Service';
+  const confirmMsg = `${type === 'support' ? 'Send suspension notice email and suspend' : 'Suspend service for'} ${candidates.length} hotel${candidates.length>1?'s':''}? You can resume at any time.`;
+  if (!confirm(confirmMsg)) return;
+
+  const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  candidates.forEach(h => {
+    if (type === 'support') suspendState[h.code].supportDone = true;
+    else suspendState[h.code].serviceDone = true;
+    const email = getEmail(h.customer);
+    suspensionHistory.unshift({id: Date.now() + Math.random(), hotel: h.hotel, customer: h.customer, code: h.code, type: label, typeKey: type, email, time: now, status: 'Suspended', resumed: false, noticeSent: type === 'support'});
+    const logMsg = type === 'support'
+      ? `<strong>${h.hotel}</strong> — support suspension notice sent to ${email} · support suspended`
+      : `<strong>${h.hotel}</strong> — Service suspended · notified ${email}`;
+    addLog(logMsg, type === 'service' ? 'var(--red)' : 'var(--amber)');
+  });
+
+  const toastMsg = type === 'support'
+    ? `Notice sent & support suspended for ${candidates.length} hotel${candidates.length>1?'s':''}` 
+    : `${candidates.length} service suspension${candidates.length>1?'s':''} initiated`;
+  showToast(toastMsg, type === 'service' ? 'danger' : 'success');
+  buildSuspendLists();
+  renderSuspensionHistory();
+}
+
+function resumeSuspension(id) {
+  const entry = suspensionHistory.find(s => s.id === id);
+  if (!entry) return;
+  entry.status = 'Resumed';
+  entry.resumed = true;
+  entry.resumeTime = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  if (entry.typeKey === 'support') suspendState[entry.code].supportDone = false;
+  else suspendState[entry.code].serviceDone = false;
+  addLog(`<strong>${entry.hotel}</strong> — ${entry.type} resumed`, 'var(--green)');
+  showToast(`${entry.type} resumed for ${entry.hotel}`, 'success');
+  buildSuspendLists();
+  renderSuspensionHistory();
+}
+
+function renderSuspensionHistory() {
+  const tbody = document.getElementById('suspensionHistory');
+  if (!suspensionHistory.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">No suspensions initiated this session</td></tr>';
+    return;
+  }
+  tbody.innerHTML = suspensionHistory.map(s => `<tr>
+    <td class="strong">${s.customer}</td>
+    <td>${s.hotel}</td>
+    <td>
+      <span class="pill ${s.type==='Service'?'pill-red':'pill-amber'}">${s.type}</span>
+      ${s.noticeSent ? '<span class="pill pill-blue" style="font-size:10px;margin-left:4px">Notice sent</span>' : ''}
+    </td>
+    <td class="mono" style="font-size:11px;color:var(--accent)">${s.email}</td>
+    <td class="mono" style="font-size:11px">${s.time}${s.resumeTime ? ` <span style="color:var(--green)">→ ${s.resumeTime}</span>` : ''}</td>
+    <td>${s.resumed
+      ? '<span class="pill pill-green" style="font-size:10px">Resumed</span>'
+      : `<span class="pill ${s.type==='Service'?'pill-red':'pill-amber'}" style="font-size:10px">Active</span>`}
+    </td>
+    <td>${s.resumed
+      ? '<span style="font-size:11px;color:var(--text3)">—</span>'
+      : `<button class="btn btn-resume btn-sm" onclick="resumeSuspension(${s.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Resume</button>`}
+    </td>
+  </tr>`).join('');
+}
+
+// ==================== EMAIL PREVIEW MODAL ====================
+let modalSendCallback = null;
+let currentReminderContext = null; // stores {hotel, customer, email, days} for tab switching
+
+function getReminderEmailTemplate(reminderNum, hotel, customer, email, days) {
+  const dueDate = new Date(Date.now() - days * 86400000).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+  const deadlineDate = new Date(Date.now() + 7*86400000).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+
+  const detailTable = `
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:12px">
+      <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Property</td><td style="padding:8px 12px;border:1px solid var(--border);font-weight:500">${hotel}</td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Invoice due date</td><td style="padding:8px 12px;border:1px solid var(--border)">${dueDate}</td></tr>
+      <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Days overdue</td><td style="padding:8px 12px;border:1px solid var(--border);color:var(--red);font-weight:500">${days} days</td></tr>
+    </table>`;
+
+  if (reminderNum === 1) {
+    return {
+      subject: `Payment Reminder — Outstanding Invoice | ${customer}`,
+      body: `
+        <p>Dear ${customer} Finance Team,</p>
+        <p>I hope this message finds you well. We wanted to reach out regarding an <strong>outstanding invoice</strong> on your Otelier account that appears to have not yet been settled.</p>
+        ${detailTable}
+        <p>This is a friendly reminder — if payment has already been arranged, please do share your remittance advice and we will update our records accordingly.</p>
+        <p>If you have any questions about your invoice or need to discuss payment options, please don't hesitate to reply to this email.</p>
+        <p style="margin-top:24px">Kind regards,<br><strong>Otelier Accounts Team</strong><br><span style="color:var(--text3);font-size:11px">accounts\u0040otelier.io</span></p>
+      `
+    };
+  }
+
+  if (reminderNum === 2) {
+    return {
+      subject: `Second Payment Reminder — Action Required | ${customer}`,
+      body: `
+        <p>Dear ${customer} Finance Team,</p>
+        <p>We are following up on our previous reminder regarding the outstanding invoice below, which remains <strong>unpaid at ${days} days overdue</strong>.</p>
+        ${detailTable}
+        <p>We kindly ask that you arrange payment as soon as possible to avoid any disruption to your Otelier services. If there is a dispute or issue with the invoice, please let us know and we will work to resolve it promptly.</p>
+        <p>Please be aware that continued non-payment may result in support services being placed on hold. We would much prefer to resolve this together before any action is needed.</p>
+        <p style="margin-top:24px">Kind regards,<br><strong>Otelier Accounts Team</strong><br><span style="color:var(--text3);font-size:11px">accounts\u0040otelier.io</span></p>
+      `
+    };
+  }
+
+  // R3 — Final
+  return {
+    subject: `Final Payment Notice — Immediate Action Required | ${customer}`,
+    body: `
+      <p>Dear ${customer} Finance Team,</p>
+      <p>This is our <strong>final notice</strong> regarding the invoice below, which is now <strong>${days} days overdue</strong>. Despite previous communications, the balance remains outstanding.</p>
+      ${detailTable}
+      <div style="background:rgba(220,38,38,0.06);border-left:3px solid var(--red);padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">
+        <p style="margin:0;font-size:12px;color:var(--red)"><strong>Important:</strong> If payment is not received by <strong>${deadlineDate}</strong>, we will have no choice but to suspend support services on your account until the outstanding balance is cleared.</p>
+      </div>
+      <p>To avoid any disruption, please arrange payment immediately or contact us to discuss a resolution. We remain committed to supporting your business and hope to resolve this without further escalation.</p>
+      <p style="margin-top:24px">Regards,<br><strong>Otelier Accounts Team</strong><br><span style="color:var(--text3);font-size:11px">accounts\u0040otelier.io</span></p>
+    `
+  };
+}
+
+function getSupportNoticeTemplate(hotel, customer, email, days) {
+  const deadlineDate = new Date(Date.now() + 7*86400000).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+  return {
+    subject: `Important Notice: Support Services Suspension — ${customer}`,
+    body: `
+      <p>Dear ${customer} Team,</p>
+      <p>We are writing to formally notify you that due to a <strong>balance remaining outstanding for ${days} days</strong>, support services for the property listed below will be suspended unless payment is received within <strong>7 business days</strong> of this notice.</p>
+      <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:12px">
+        <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Property</td><td style="padding:8px 12px;border:1px solid var(--border);font-weight:500">${hotel}</td></tr>
+        <tr><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Account status</td><td style="padding:8px 12px;border:1px solid var(--border);color:var(--red);font-weight:500">${days} days overdue</td></tr>
+        <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Action required by</td><td style="padding:8px 12px;border:1px solid var(--border);font-weight:500">${deadlineDate}</td></tr>
+      </table>
+      <div style="background:rgba(220,38,38,0.06);border-left:3px solid var(--red);padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">
+        <p style="margin:0;font-size:12px;color:var(--red)"><strong>What this means:</strong> If payment is not received by the date above, your ability to raise new support tickets and access live support will be paused until the account is brought current.</p>
+      </div>
+      <p>To resolve this immediately, please contact your account manager or reply to this email with your remittance advice. We are happy to arrange a call to discuss payment options.</p>
+      <p style="margin-top:24px">Regards,<br><strong>Otelier Accounts Team</strong><br><span style="color:var(--text3);font-size:11px">accounts\u0040otelier.io</span></p>
+    `
+  };
+}
+
+function switchReminderTab(num, btn) {
+  if (!currentReminderContext) return;
+  // Update active tab
+  ['tabR1','tabR2','tabR3'].forEach(id => document.getElementById(id).classList.remove('active'));
+  btn.classList.add('active');
+  // Re-render email body for this version
+  const { hotel, customer, email, days } = currentReminderContext;
+  const tmpl = getReminderEmailTemplate(num, hotel, customer, email, days);
+  document.getElementById('modalSubject').textContent = tmpl.subject;
+  document.getElementById('modalBody').innerHTML = tmpl.body;
+}
+
+function previewEmail(type) {
+  let hotel, customer, email, days;
+
+  if (type === 'reminder') {
+    const pending = overdueHotels.filter(h => !reminderState[h.code]?.cleared && reminderState[h.code]?.selected && getReminderTier(h.days) > 0);
+    const first = pending[0] || overdueHotels.find(h => getReminderTier(h.days) > 0);
+    if (!first) { showToast('No overdue hotels ready for reminders', 'danger'); return; }
+    hotel = first.hotel; customer = first.customer; days = first.days;
+    email = getEmail(customer);
+
+    currentReminderContext = { hotel, customer, email, days };
+
+    const tabBar = document.getElementById('reminderVersionTabs');
+    tabBar.style.display = 'flex';
+    // Default to the tier matching the first selected hotel
+    const defaultTier = getReminderTier(days);
+    ['tabR1','tabR2','tabR3'].forEach(id => document.getElementById(id).classList.remove('active'));
+    document.getElementById('tabR' + defaultTier).classList.add('active');
+
+    document.getElementById('modalTitle').textContent = 'Payment reminder email preview';
+    document.getElementById('modalSubtitle').textContent = `R1 = 30–59 days · R2 = 60–119 days · R3 = 120+ days. Each property receives its matching version.`;
+    document.getElementById('modalTo').textContent = email;
+    document.getElementById('modalSendBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send all reminders';
+    modalSendCallback = () => { sendSelectedReminders(); closeEmailModal(); };
+
+    const tmpl = getReminderEmailTemplate(defaultTier, hotel, customer, email, days);
+    document.getElementById('modalSubject').textContent = tmpl.subject;
+    document.getElementById('modalBody').innerHTML = tmpl.body;
+
+  } else {
+    // Support notice — no tabs needed
+    currentReminderContext = null;
+    document.getElementById('reminderVersionTabs').style.display = 'none';
+
+    const candidates = overdueHotels.filter(h => h.days >= 120 && suspendState[h.code]?.supportSelected && !suspendState[h.code]?.supportDone);
+    const first = candidates[0] || overdueHotels.find(h => h.days >= 120);
+    if (!first) { showToast('No hotels selected for support suspension', 'danger'); return; }
+    hotel = first.hotel; customer = first.customer; days = first.days;
+    email = getEmail(customer);
+
+    document.getElementById('modalTitle').textContent = 'Support suspension notice preview';
+    document.getElementById('modalSubtitle').textContent = `Sent to ${candidates.length || 1} hotel${candidates.length !== 1 ? 's' : ''} before suspension is applied`;
+    document.getElementById('modalTo').textContent = email;
+    document.getElementById('modalSendBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send notice & suspend';
+    modalSendCallback = () => { bulkAction('support', true); closeEmailModal(); };
+
+    const tmpl = getSupportNoticeTemplate(hotel, customer, email, days);
+    document.getElementById('modalSubject').textContent = tmpl.subject;
+    document.getElementById('modalBody').innerHTML = tmpl.body;
+  }
+
+  document.getElementById('emailModal').style.display = 'flex';
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModal').style.display = 'none';
+  document.getElementById('reminderVersionTabs').style.display = 'none';
+  currentReminderContext = null;
+  modalSendCallback = null;
+}
+
+function sendFromModal() {
+  if (modalSendCallback) modalSendCallback();
+}
+
+// Close modal on backdrop click
+document.getElementById('emailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEmailModal();
+});
+
+// ==================== SHARED UTILS ====================
+function addLog(msg, color) {
+  const log = document.getElementById('actionLog');
+  const empty = log.querySelector('div');
+  if (empty && empty.textContent.includes('No actions')) empty.remove();
+  const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<div class="log-dot" style="background:${color}"></div><div class="log-time">${now}</div><div class="log-msg">${msg}</div>`;
+  log.prepend(entry);
+}
+
+function showToast(msg, type) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<div class="toast-icon"></div><div style="flex:1">${msg}</div>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// ==================== AI HEALTH ====================
+const PORTFOLIO_CONTEXT = `You are an AI analyst for a hotel technology company called Otelier. You are analyzing a portfolio of hotel customers.
+
+KEY DATA:
+- Total ARR: $864,600 across 10 customers and 79 hotels
+- Active hotels: 64 (81%), Soft Active: 9, Offboarded: 6
+- ARR at risk (overdue): $236,400 (27.3% of total ARR)
+- 22 hotels not paid across 3 customers
+
+OVERDUE CUSTOMERS:
+1. Stonehill Hotels: 8/13 hotels, $84,000 ARR, 120 days overdue, all 3 reminders sent
+2. Highgate Hotels: 9/9 hotels, $106,200 ARR, 60 days overdue, R2 sent
+3. Lunar Hotel: 5/5 hotels, $46,200 ARR, 35 days overdue, R1 sent
+
+CUSTOMER ARR RANKING:
+Stonehill Hotels $174K, Solar Hotel $149K, Rotana Hotels $119K, Highgate Hotels $106K, Distinction $76K, HighTech Hospitality $70K, Pinnacle Hotel $50K, Lunar Hotel $46K, Belmond Hotels $46K, Village Hotels $30K
+
+PRODUCT ADOPTION (out of 79 hotels):
+- IntelliSight Platform: 66 active (84%)
+- REC: 65 active (82%)
+- DigiAudit Plus: 54 active (68%)
+- TruePlan: 18 active (23%) — LOW
+- MyP: 8 active (10%) — CRITICAL LOW
+
+SERVICE ALERTS:
+- Support suspended: 8 hotels
+- Service suspended: 2 hotels
+- R1 sent: 22, R2 sent: 17, R3 sent: 8
+
+Provide concise, actionable insights. Use bullet points where helpful. Be direct and specific. Format for a busy account manager.`;
+
+async function askAI(query) {
+  const input = document.getElementById('aiInput');
+  if (query) input.value = query;
+  sendAIQuery();
+}
+
+async function sendAIQuery() {
+  const input = document.getElementById('aiInput');
+  const q = input.value.trim();
+  if (!q) return;
+
+  const btn = document.getElementById('aiSendBtn');
+  btn.disabled = true;
+
+  const output = document.getElementById('aiOutput');
+  output.innerHTML = `<div class="ai-thinking"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:4px">Analyzing portfolio data...</span></div>`;
+
+  // Use local proxy if running on localhost, otherwise try direct (works in Claude.ai artifacts)
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const apiUrl = isLocal ? '/api/claude' : 'https://api.anthropic.com/v1/messages';
+
+  const headers = { 'Content-Type': 'application/json' };
+
+  try {
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: PORTFOLIO_CONTEXT,
+        messages: [{ role: 'user', content: q }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || 'No response received.';
+
+    const html = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/### (.*?)(\n|$)/g, '<h3>$1</h3>')
+      .replace(/## (.*?)(\n|$)/g, '<h3>$1</h3>')
+      .replace(/# (.*?)(\n|$)/g, '<h3>$1</h3>')
+      .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+
+    output.innerHTML = `<div class="ai-response">${html}</div>`;
+  } catch (e) {
+    const isCORS = e.message.includes('fetch') || e.message.includes('Failed');
+    output.innerHTML = `<div class="ai-response" style="color:var(--text2)">
+      <p style="color:var(--red);font-weight:500;margin-bottom:12px">AI connection failed — CORS restriction</p>
+      <p style="margin-bottom:10px">Browsers block direct calls to the Anthropic API for security reasons. To enable AI chat, run the dashboard through the local proxy:</p>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.8;margin-bottom:10px">
+        <div style="color:var(--text3);margin-bottom:4px"># 1. Save server.js alongside the HTML, then:</div>
+        <div>ANTHROPIC_API_KEY=<span style="color:var(--accent)">your-key-here</span> node server.js</div>
+        <div style="color:var(--text3);margin-top:4px"># 2. Open http://localhost:3000</div>
+      </div>
+      <p style="font-size:11px;color:var(--text3)">The server.js proxy file was provided alongside this dashboard. Your API key stays on your machine and is never exposed in the browser.</p>
+    </div>`;
+  }
+
+  btn.disabled = false;
+  input.value = '';
+}
+
+// ==================== GLOBAL FILTERS ====================
+let gCustomer = 'all';
+let gHotel = 'all';
+
+function populateHotelDropdown() {
+  const sel = document.getElementById('globalHotelFilter');
+  const prev = sel.value;
+  // Filter hotels by selected customer
+  const hotels = gCustomer === 'all'
+    ? DATA.hotels
+    : DATA.hotels.filter(h => h.customer === gCustomer);
+  // Unique hotel names
+  const unique = [...new Set(hotels.map(h => h.hotel))].sort();
+  sel.innerHTML = '<option value="all">All hotels</option>' +
+    unique.map(n => `<option value="${n}" ${prev === n ? 'selected' : ''}>${n}</option>`).join('');
+  // If previous selection no longer valid, reset
+  if (prev !== 'all' && !unique.includes(prev)) sel.value = 'all';
+}
+
+function applyGlobalFilters() {
+  gCustomer = document.getElementById('globalCustomerFilter').value;
+  // Repopulate hotel dropdown when customer changes
+  populateHotelDropdown();
+  gHotel = document.getElementById('globalHotelFilter').value;
+
+  // Show/hide clear badge
+  const active = gCustomer !== 'all' || gHotel !== 'all';
+  document.getElementById('activeFilterBadge').style.display = active ? 'inline' : 'none';
+
+  // Recompute filtered datasets
+  const filteredHotels = getFilteredHotels();
+  const filteredRoster = getFilteredRoster();
+
+  // Update topbar counts
+  document.getElementById('topbarActiveCount').textContent =
+    filteredHotels.filter(h => h.status === 'Active').length;
+  document.getElementById('topbarOverdueCount').textContent =
+    filteredHotels.filter(h => h.days).length;
+
+  // Refresh all views
+  refreshOverview(filteredHotels, filteredRoster);
+  applyHotelFilter();
+  buildReminderList(filteredHotels);
+  buildSuspendLists(filteredHotels);
+}
+
+function clearGlobalFilters() {
+  document.getElementById('globalCustomerFilter').value = 'all';
+  gCustomer = 'all';
+  populateHotelDropdown();
+  document.getElementById('globalHotelFilter').value = 'all';
+  gHotel = 'all';
+  applyGlobalFilters();
+}
+
+function getFilteredHotels() {
+  return DATA.hotels.filter(h => {
+    if (gCustomer !== 'all' && h.customer !== gCustomer) return false;
+    if (gHotel !== 'all' && h.hotel !== gHotel) return false;
+    return true;
+  });
+}
+
+function getFilteredRoster() {
+  if (gCustomer === 'all' && gHotel === 'all') return DATA.roster;
+  return DATA.roster.filter(r => {
+    if (gCustomer !== 'all' && r.customer !== gCustomer) return false;
+    // If hotel filtered, only show the customer that owns that hotel
+    if (gHotel !== 'all') {
+      const hotelObj = DATA.hotels.find(h => h.hotel === gHotel);
+      if (!hotelObj || r.customer !== hotelObj.customer) return false;
+    }
+    return true;
+  });
+}
+
+function refreshOverview(filteredHotels, filteredRoster) {
+  // ── KPI cards ──────────────────────────────────────────────────
+  const totalArr = filteredRoster.reduce((s, r) => s + r.arr, 0);
+  const active   = filteredHotels.filter(h => h.status === 'Active').length;
+  const softActive = filteredHotels.filter(h => h.status === 'Soft Active').length;
+  const inactive = filteredHotels.filter(h => h.status === 'Offboarded').length;
+  const overdue  = filteredHotels.filter(h => h.days);
+
+  const overdueCustomers = [...new Set(overdue.map(h => h.customer))];
+  let riskArr = 0;
+  overdueCustomers.forEach(c => {
+    const r = DATA.roster.find(x => x.customer === c);
+    if (r) riskArr += Math.round(r.arr * (overdue.filter(h => h.customer === c).length / r.hotels));
+  });
+
+  const kpiEls = document.querySelectorAll('#page-overview .kpi-val');
+  if (kpiEls[0]) kpiEls[0].textContent = '$' + (totalArr / 1000).toFixed(1) + 'K';
+  if (kpiEls[1]) kpiEls[1].textContent = active;
+  if (kpiEls[2]) kpiEls[2].textContent = '$' + (riskArr / 1000).toFixed(1) + 'K';
+  if (kpiEls[3]) kpiEls[3].textContent = overdue.length;
+
+  const kpiSubs = document.querySelectorAll('#page-overview .kpi-sub');
+  if (kpiSubs[0]) kpiSubs[0].textContent = filteredRoster.length + ' customer' + (filteredRoster.length !== 1 ? 's' : '') + ' · ' + filteredHotels.length + ' hotel' + (filteredHotels.length !== 1 ? 's' : '');
+  if (kpiSubs[1]) kpiSubs[1].textContent = filteredHotels.length ? Math.round(active / filteredHotels.length * 100) + '% of portfolio' : '—';
+  if (kpiSubs[3]) kpiSubs[3].textContent = overdueCustomers.length + ' customer' + (overdueCustomers.length !== 1 ? 's' : '') + ' affected';
+
+  // ── ARR bar chart ───────────────────────────────────────────────
+  if (window.chartARR) {
+    const overdueSet = new Set(overdue.map(h => h.customer));
+    const labels = filteredRoster.map(r => r.customer.split(' ')[0]); // first word as short label
+    const values = filteredRoster.map(r => r.arr);
+    const colors = filteredRoster.map(r => overdueSet.has(r.customer) ? '#dc2626' : '#059669');
+    window.chartARR.data.labels = labels;
+    window.chartARR.data.datasets[0].data = values;
+    window.chartARR.data.datasets[0].backgroundColor = colors;
+    window.chartARR.update();
+  }
+
+  // ── Hotel status donut ──────────────────────────────────────────
+  if (window.chartStatus) {
+    window.chartStatus.data.datasets[0].data = [active, softActive, inactive];
+    window.chartStatus.update();
+    // Update legends
+    const la = document.getElementById('legendActive');
+    const ls = document.getElementById('legendSoftActive');
+    const li = document.getElementById('legendInactive');
+    if (la) la.textContent = 'Active ' + active;
+    if (ls) ls.textContent = 'Soft active ' + softActive;
+    if (li) li.textContent = 'Offboarded ' + inactive;
+    // Update donut center
+    const center = document.getElementById('statusDonutCenter');
+    if (center) center.textContent = filteredHotels.length;
+  }
+
+  // ── Payment status donut ────────────────────────────────────────
+  if (window.chartPay) {
+    const paid   = filteredHotels.filter(h => h.pay === 'Paid').length;
+    const notPaid = filteredHotels.filter(h => h.pay === 'Not Paid').length;
+    const na     = filteredHotels.filter(h => h.pay === 'Not Applicable').length;
+    window.chartPay.data.datasets[0].data = [paid, notPaid, na];
+    window.chartPay.update();
+    const lp = document.getElementById('legendPaid');
+    const ln = document.getElementById('legendNotPaid');
+    const lna = document.getElementById('legendNA');
+    if (lp)  lp.textContent  = 'Paid '     + paid;
+    if (ln)  ln.textContent  = 'Not paid ' + notPaid;
+    if (lna) lna.textContent = 'N/A '      + na;
+    // Update pay donut center
+    const center2 = document.getElementById('payDonutCenter');
+    if (center2) center2.textContent = filteredHotels.length;
+  }
+}
+
+// ==================== END GLOBAL FILTERS ====================
+
+document.getElementById('aiInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIQuery(); }
+});
+
+// ==================== SALESFORCE SYNC ====================
+function syncSalesforce() {
+  const btn = document.getElementById('sfSyncBtn');
+  const status = document.getElementById('syncStatus');
+  if (btn.classList.contains('syncing')) return;
+
+  btn.classList.add('syncing');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Syncing…';
+  status.style.display = 'none';
+
+  const stages = [
+    {msg: 'Connecting to Salesforce…', delay: 600},
+    {msg: 'Fetching account data…', delay: 1200},
+    {msg: 'Updating payment status…', delay: 900},
+    {msg: 'Refreshing ARR records…', delay: 800},
+  ];
+
+  let elapsed = 0;
+  stages.forEach(s => {
+    elapsed += s.delay;
+    setTimeout(() => {
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> ' + s.msg;
+    }, elapsed - s.delay + 100);
+  });
+
+  setTimeout(() => {
+    btn.classList.remove('syncing');
+    btn.classList.add('done');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Synced';
+    status.style.display = 'flex';
+    document.getElementById('syncStatusText').textContent = 'Last synced just now · 79 records updated';
+    showToast('Salesforce sync complete — 79 records updated', 'success');
+    addLog('Salesforce sync completed — 79 records refreshed from CRM', 'var(--green)');
+    setTimeout(() => {
+      btn.classList.remove('done');
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Sync Salesforce';
+    }, 4000);
+  }, elapsed + 400);
+}
+
+// ==================== NOTIFICATIONS ====================
+const NOTIFICATIONS = [
+  { id: 1, customer: 'Distinction',          hotel: 'Hotel Houston Select',        code: 'Hotel Code 870424', date: 'October 16, 2024',  isNew: true  },
+  { id: 2, customer: 'HighTech Hospitality', hotel: 'The Edgemont',                code: 'Hotel Code 27',     date: 'May 31, 2024',      isNew: true  },
+  { id: 3, customer: 'HighTech Hospitality', hotel: 'Westgate Conference Hotel',   code: 'Hotel Code 28',     date: 'November 20, 2023', isNew: false },
+  { id: 4, customer: 'HighTech Hospitality', hotel: 'Novara Boutique Hotel',       code: 'Hotel Code 26',     date: 'September 4, 2023', isNew: false },
+  { id: 5, customer: 'Distinction',          hotel: 'Hotel Baton Rouge Premium',   code: 'Hotel Code 870425', date: 'October 17, 2022',  isNew: false },
+  { id: 6, customer: 'HighTech Hospitality', hotel: 'The Blackwell Residences',    code: 'Hotel Code 25',     date: 'October 31, 2022',  isNew: false },
+];
+
+const readNotifs = new Set();
+
+function renderNotifList() {
+  const el = document.getElementById('notifList');
+  el.innerHTML = NOTIFICATIONS.map(n => {
+    const isRead = readNotifs.has(n.id);
+    return `<div style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:default;transition:background 0.1s;background:${n.isNew && !isRead ? 'rgba(220,38,38,0.04)' : 'transparent'}" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='${n.isNew && !isRead ? 'rgba(220,38,38,0.04)' : 'transparent'}'">
+      <div style="flex-shrink:0;margin-top:3px">
+        <div style="width:32px;height:32px;border-radius:50%;background:${n.isNew && !isRead ? 'var(--red-bg)' : 'var(--surface2)'};display:flex;align-items:center;justify-content:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${n.isNew && !isRead ? 'var(--red)' : 'var(--text3)'}" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+          <span style="font-size:12px;font-weight:500;color:var(--text)">${n.hotel}</span>
+          ${n.isNew && !isRead ? '<span style="font-size:9px;font-weight:700;background:var(--red);color:#fff;padding:1px 5px;border-radius:10px">NEW</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5">
+          <strong>${n.customer}</strong> property has been offboarded.
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:4px">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          As of ${n.date} &nbsp;·&nbsp; ${n.code}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateNotifBadge() {
+  const unread = NOTIFICATIONS.filter(n => n.isNew && !readNotifs.has(n.id)).length;
+  const badge = document.getElementById('notifBadge');
+  if (unread > 0) {
+    badge.textContent = unread;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    renderNotifList();
+    // Mark new ones as read after viewing
+    NOTIFICATIONS.forEach(n => { if (n.isNew) readNotifs.add(n.id); });
+    setTimeout(() => { updateNotifBadge(); renderNotifList(); }, 1500);
+  }
+}
+
+function markAllRead() {
+  NOTIFICATIONS.forEach(n => readNotifs.add(n.id));
+  updateNotifBadge();
+  renderNotifList();
+}
+
+// Close panel when clicking outside
+document.addEventListener('click', function(e) {
+  const wrapper = document.getElementById('notifWrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    document.getElementById('notifPanel').style.display = 'none';
+  }
+});
+
+// Init dashboard (called after API data loaded)
+function initDashboard() {
+  // Recompute overdue hotels and reminder state from live data
+  overdueHotels = DATA.hotels.filter(h => h.days);
+  reminderState = {};
+  overdueHotels.forEach(h => {
+    reminderState[h.code] = reminderStateInit[h.code] || {selected: true, sent: false, cleared: false, r1Sent: !!(h.days && h.days >= 30), r2Sent: !!(h.days && h.days >= 60), r3Sent: !!(h.days && h.days >= 90)};
+  });
+  updateNotifBadge();
+  buildReminderList();
+  buildSuspendLists();
+  buildHotelsTable(DATA.hotels);
+  buildProdList();
+  initCharts();
+  updateReminderBadge();
+  sentCount = getSentCount(); document.getElementById('sentCount').textContent = sentCount;
+}
+
+// Kick off API load
+loadDataFromAPI();
+</script>
+</body>
+</html>
