@@ -1944,14 +1944,14 @@ function buildReminderList(filteredHotels) {
             ${sessionSentReminders.has(h.code+'_2') ? '<span class="pill pill-blue" style="font-size:9px;padding:1px 6px">R2 sent</span>' : ''}
             ${sessionSentReminders.has(h.code+'_3') ? '<span class="pill pill-green" style="font-size:9px;padding:1px 6px">R3 sent</span>' : ''}
           </div>
-          <div class="email-row" id="email-display-rem-${cKey}" style="display:flex">
+          <div class="email-row" style="display:flex">
             <div class="email-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${email}</div>
-            <button class="edit-email-btn" onclick="toggleEmailEdit('${h.customer}','rem-${cKey}')">Edit</button>
+            <button class="edit-email-btn" onclick="(function(btn){var row=btn.closest('.check-label');row.querySelector('.email-row').style.display='none';row.querySelector('.email-edit-inline').style.display='flex';row.querySelector('.email-input-field').focus();})(this)">Edit</button>
           </div>
-          <div class="email-edit-inline" id="email-edit-rem-${cKey}" style="display:none">
+          <div class="email-edit-inline" style="display:none">
             <input class="email-input-field" type="email" placeholder="${email}" value="${email}">
-            <button class="email-save-btn" onclick="saveEmail('${h.customer}', this.previousElementSibling.previousElementSibling.value)">Save</button>
-            <button class="email-cancel-btn" onclick="toggleEmailEdit('${h.customer}','rem-${cKey}')">Cancel</button>
+            <button class="email-save-btn" onclick="(function(btn){var row=btn.closest('.check-label');var inp=row.querySelector('.email-input-field');saveEmail('${h.customer}',inp.value);row.querySelector('.email-row').style.display='flex';row.querySelector('.email-edit-inline').style.display='none';})(this)">Save</button>
+            <button class="email-cancel-btn" onclick="(function(btn){var row=btn.closest('.check-label');row.querySelector('.email-row').style.display='flex';row.querySelector('.email-edit-inline').style.display='none';})(this)">Cancel</button>
           </div>
         </div>
         <div class="check-actions">
