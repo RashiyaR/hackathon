@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: hackathon-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SF_ACCOUNT
+        sync: false
+      - key: SF_USER
+        sync: false
+      - key: SF_PASSWORD
+        sync: false
+      - key: SF_WAREHOUSE
+        sync: false
+      - key: SF_DATABASE
+        sync: false
+      - key: SF_SCHEMA
+        sync: false
