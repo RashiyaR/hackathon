@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Otelier – Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #eef0f2;
+    --card: #ffffff;
+    --text: #2d2d2d;
+    --muted: #888;
+    --border: #dde0e4;
+    --btn: #1e1e1e;
+    --btn-text: #fff;
+    --link: #3a7bd5;
+    --warning-bg: #fff8e1;
+    --warning-border: #f0b429;
+    --warning-text: #7a5400;
+    --danger-bg: #fff1f0;
+    --danger-border: #ff4d4f;
+    --danger-text: #a8071a;
+    --disabled: #b0b0b0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── LOGO SVG ── */
+  .logo-ring {
+    width: 52px; height: 52px;
+  }
+  .logo-wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 1.55rem;
+    letter-spacing: 0.22em;
+    color: #3a3a3a;
+    text-transform: uppercase;
+  }
+
+  /* ══════════════════════════════
+     LOGIN PAGE
+  ══════════════════════════════ */
+  #login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  .login-box {
+    background: var(--bg);
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .login-logo {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 60px;
+  }
+  .login-logo .logo-ring { width: 110px; height: 110px; }
+  .login-logo .logo-wordmark { font-size: 2.4rem; letter-spacing: 0.28em; }
+
+  .login-fields {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .input-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  .input-wrap input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-wrap input::placeholder { color: #aaa; }
+  .input-wrap input:focus { border-color: #aab4c0; }
+
+  .toggle-pw {
+    position: absolute;
+    right: 16px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    cursor: pointer; color: #7ab0d4;
+    display: flex; align-items: center;
+  }
+
+  .login-btn {
+    margin-top: 8px;
+    width: 160px;
+    padding: 14px 0;
+    background: var(--btn);
+    color: var(--btn-text);
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    align-self: center;
+  }
+  .login-btn:hover { opacity: 0.85; }
+
+  .forgot-link {
+    margin-top: 18px;
+    font-size: 0.9rem;
+    color: var(--text);
+    text-decoration: none;
+    opacity: 0.7;
+  }
+  .forgot-link:hover { opacity: 1; }
+
+  .login-error {
+    color: #c0392b;
+    font-size: 0.85rem;
+    text-align: center;
+    min-height: 20px;
+    margin-top: 4px;
+  }
+
+  /* ══════════════════════════════
+     LANDING PAGE
+  ══════════════════════════════ */
+  #landing-page { display: none; flex-direction: column; min-height: 100vh; }
+
+  /* Top nav */
+  .top-nav {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; }
+  .nav-user {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.9rem; color: var(--text);
+    cursor: pointer;
+  }
+  .nav-user svg { color: #5a8ec5; }
+  .nav-user .chevron { color: #aaa; }
+
+  /* Banner */
+  .banner {
+    padding: 14px 40px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .banner.warning {
+    background: var(--warning-bg);
+    border-bottom: 1px solid var(--warning-border);
+    color: var(--warning-text);
+  }
+  .banner.danger {
+    background: var(--danger-bg);
+    border-bottom: 1px solid var(--danger-border);
+    color: var(--danger-text);
+  }
+  .banner-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .banner strong { font-weight: 600; }
+
+  /* Content */
+  .landing-content {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .section-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 32px 36px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .section-card h2 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .section-card .sub-link {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .section-card .sub-link a { color: var(--link); text-decoration: none; }
+  .section-card .sub-link a:hover { text-decoration: underline; }
+
+  .tile-row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  .tile {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 0.88rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    color: var(--text);
+    background: var(--card);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .tile:hover { background: #f5f7f9; border-color: #c0c8d0; }
+
+  /* Disabled state for suspended user */
+  .tile.disabled {
+    color: var(--disabled);
+    border-color: #e0e0e0;
+    background: #f9f9f9;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .section-card.disabled h2 { color: var(--disabled); }
+  .section-card.disabled .sub-link { color: #ccc; }
+  .section-card.disabled .sub-link a { color: #ccc; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN PAGE ══════════ -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg class="logo-ring" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="55" cy="55" r="42" stroke="url(#ring-grad)" stroke-width="9" fill="none"/>
+        <defs>
+          <linearGradient id="ring-grad" x1="10" y1="10" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#f857a6"/>
+            <stop offset="25%" stop-color="#ff5858"/>
+            <stop offset="50%" stop-color="#f9d423"/>
+            <stop offset="75%" stop-color="#43e97b"/>
+            <stop offset="100%" stop-color="#38f9d7"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="logo-wordmark">OTELIER</span>
+    </div>
+
+    <div class="login-fields">
+      <div class="input-wrap">
+        <input type="text" id="username" placeholder="Username" autocomplete="username"/>
+      </div>
+      <div class="input-wrap">
+        <input type="password" id="password" placeholder="Password" autocomplete="current-password"/>
+        <button class="toggle-pw" onclick="togglePw()" aria-label="Toggle password visibility" type="button">
+          <svg id="pw-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+            <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="login-error" id="login-error"></div>
+    <button class="login-btn" onclick="doLogin()">Log in</button>
+    <a href="#" class="forgot-link">Forgot password?</a>
+  </div>
+</div>
+
+<!-- ══════════ LANDING PAGE ══════════ -->
+<div id="landing-page">
+
+  <!-- Nav -->
+  <nav class="top-nav">
+    <div class="nav-logo">
+      <svg width="38" height="38" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="55" cy="55" r="42" stroke="url(#ring-grad2)" stroke-width="9" fill="none"/>
+        <defs>
+          <linearGradient id="ring-grad2" x1="10" y1="10" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#f857a6"/>
+            <stop offset="25%" stop-color="#ff5858"/>
+            <stop offset="50%" stop-color="#f9d423"/>
+            <stop offset="75%" stop-color="#43e97b"/>
+            <stop offset="100%" stop-color="#38f9d7"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="logo-wordmark">OTELIER</span>
+    </div>
+    <div class="nav-user">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+      <span id="nav-username">Rashiya Rakeesthu</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+  </nav>
+
+  <!-- Banner (injected by JS) -->
+  <div id="banner-area"></div>
+
+  <!-- Sections -->
+  <div class="landing-content" id="landing-content">
+
+    <div class="section-card" id="card-backoffice">
+      <h2>Back office automation</h2>
+      <p class="sub-link">Read about upcoming changes <a href="#">here.</a></p>
+      <div class="tile-row">
+        <button class="tile" id="tile-compliance">Compliance</button>
+        <button class="tile" id="tile-ulp">Universal Loading Portal</button>
+        <button class="tile" id="tile-rec">REC</button>
+      </div>
+    </div>
+
+    <div class="section-card" id="card-bi">
+      <h2>Business intelligence</h2>
+      <p class="sub-link">Read about upcoming changes <a href="#">here.</a></p>
+      <div class="tile-row">
+        <button class="tile" id="tile-intellisight">IntelliSight Platform</button>
+      </div>
+    </div>
+
+    <div class="section-card" id="card-budget">
+      <h2>Budgeting and forecasting</h2>
+      <p class="sub-link">Read about upcoming changes <a href="#">here.</a></p>
+      <div class="tile-row">
+        <button class="tile" id="tile-trueplan">TruePlan</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const USERS = {
+    'rashiya@test.io': {
+      password: 'Test123',
+      displayName: 'Rashiya',
+      status: 'warning'
+    },
+    'test@test.io': {
+      password: 'Test123',
+      displayName: 'Test User',
+      status: 'suspended'
+    }
+  };
+
+  function togglePw() {
+    const inp = document.getElementById('password');
+    const icon = document.getElementById('pw-icon');
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+    } else {
+      inp.type = 'password';
+      icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+    }
+  }
+
+  function doLogin() {
+    const u = document.getElementById('username').value.trim().toLowerCase();
+    const p = document.getElementById('password').value;
+    const err = document.getElementById('login-error');
+
+    const user = USERS[u];
+    if (!user || user.password !== p) {
+      err.textContent = 'Invalid username or password. Please try again.';
+      return;
+    }
+    err.textContent = '';
+    showLanding(u, user);
+  }
+
+  // Allow Enter key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('login-page').style.display !== 'none') {
+      doLogin();
+    }
+  });
+
+  function showLanding(email, user) {
+    document.getElementById('login-page').style.display = 'none';
+    const lp = document.getElementById('landing-page');
+    lp.style.display = 'flex';
+
+    document.getElementById('nav-username').textContent = user.displayName;
+
+    const bannerArea = document.getElementById('banner-area');
+
+    if (user.status === 'warning') {
+      bannerArea.innerHTML = `
+        <div class="banner warning">
+          <span class="banner-icon">ℹ️</span>
+          <div>
+            <strong>Action Needed: Payment Overdue.</strong>
+            Your subscription payment has not been processed. To avoid service interruption, please contact your account manager or billing team to complete the payment as soon as possible.
+            If you believe this is an error, reach out to <a href="mailto:accounts@otelier.io" style="color:inherit;font-weight:600;">accounts@otelier.io</a>.
+          </div>
+        </div>`;
+    } else if (user.status === 'suspended') {
+      bannerArea.innerHTML = `
+        <div class="banner danger">
+          <span class="banner-icon">🚫</span>
+          <div>
+            <strong>Service Suspended.</strong>
+            Your account has been suspended due to an outstanding payment. All features have been disabled. Please contact your accounts team at
+            <a href="mailto:accounts@otelier.io" style="color:inherit;font-weight:600;">accounts@otelier.io</a>
+            to make a payment and resume services immediately.
+          </div>
+        </div>`;
+
+      // Disable all tiles and dim cards
+      document.querySelectorAll('.tile').forEach(t => t.classList.add('disabled'));
+      document.querySelectorAll('.section-card').forEach(c => c.classList.add('disabled'));
+    }
+  }
+</script>
+</body>
+</html>
