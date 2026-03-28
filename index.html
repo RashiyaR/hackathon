@@ -2435,7 +2435,7 @@ async function sendAIQuery() {
 
   // Use local proxy if running on localhost, otherwise try direct (works in Claude.ai artifacts)
   const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  const apiUrl = isLocal ? '/api/claude' : 'https://api.anthropic.com/v1/messages';
+ const apiUrl = 'https://hackathon-api-esom.onrender.com/api/claude';
 
   const headers = { 'Content-Type': 'application/json' };
 
