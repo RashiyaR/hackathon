@@ -2,3 +2,4 @@ flask
 flask-cors
 snowflake-connector-python
 gunicorn
+anthropic
