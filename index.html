@@ -927,16 +927,16 @@ document.addEventListener('DOMContentLoaded', function() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
         Hotels
       </button>
+      <button class="nav-item" onclick="showPage('products',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Product Adoption
+      </button>
 
       <div class="nav-label">Actions</div>
       <button class="nav-item" onclick="showPage('reminders',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.21 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
         Reminders & Suspensions
         <span class="nav-badge" id="reminderBadge">22</span>
-      </button>
-      <button class="nav-item" onclick="showPage('products',this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Product Adoption
       </button>
 
       <div class="nav-label">Intelligence</div>
@@ -1047,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="kpi-sub">81% of portfolio</div>
           </div>
           <div class="kpi-card warn animate">
-            <div class="kpi-label">ARR at risk</div>
+            <div class="kpi-label">Open Invoices</div>
             <div class="kpi-val">$236.4K</div>
             <div class="kpi-sub">27.3% of total ARR</div>
           </div>
@@ -1258,8 +1258,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="card-title">Support suspension
               <span style="color:var(--amber);font-size:11px">Notifies customers via email</span>
             </div>
-            <div id="supportSuspendList"></div>
-            <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+            <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <button class="btn btn-ghost btn-sm" onclick="selectAllSuspend('support',true)">Select all</button>
+              <button class="btn btn-ghost btn-sm" onclick="selectAllSuspend('support',false)">Deselect all</button>
               <button class="btn btn-ghost btn-sm" onclick="previewEmail('support-notice')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 Preview notice email
@@ -1269,18 +1270,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 Send notice & suspend
               </button>
             </div>
+            <div id="supportSuspendList"></div>
           </div>
           <div class="card">
             <div class="card-title">Service suspension
               <span style="color:var(--red);font-size:11px">Full platform access removed</span>
             </div>
-            <div id="serviceSuspendList"></div>
-            <div style="margin-top:14px">
+            <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <button class="btn btn-ghost btn-sm" onclick="selectAllSuspend('service',true)">Select all</button>
+              <button class="btn btn-ghost btn-sm" onclick="selectAllSuspend('service',false)">Deselect all</button>
+              <button class="btn btn-ghost btn-sm" onclick="previewEmail('service-notice')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Preview suspension email
+              </button>
               <button class="btn btn-danger btn-sm" onclick="bulkAction('service')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                 Suspend selected service
               </button>
             </div>
+            <div id="serviceSuspendList"></div>
           </div>
         </div>
 
@@ -1521,8 +1529,8 @@ function showPage(id, btn) {
   const navBtn = btn || (typeof event !== 'undefined' && event.currentTarget) || document.querySelector('.nav-item[onclick*="' + id + '"]');
   if (navBtn) navBtn.classList.add('active');
 
-  // Show global filters only on overview and hotels pages
-  const showFilters = id === 'overview' || id === 'hotels';
+  // Show global filters on overview, hotels, products and reminders pages
+  const showFilters = id === 'overview' || id === 'hotels' || id === 'products' || id === 'reminders';
   document.getElementById('filterDivider').style.display = showFilters ? 'block' : 'none';
   document.getElementById('filterPanel').style.display = showFilters ? 'flex' : 'none';
   window._pageQueue = [];
@@ -1609,19 +1617,21 @@ function buildHotelsTable(data) {
   }).join('');
 }
 
-function buildProdList() {
+function buildProdList(filteredHotels) {
+  const hotels = filteredHotels || DATA.hotels;
+  const total = hotels.length || 1;
   const prods = [
-    {name:'IntelliSight Platform', count:66, color:'#0891b2'},
-    {name:'REC', count:65, color:'#059669'},
-    {name:'DigiAudit Plus', count:54, color:'#3b6ef0'},
-    {name:'TruePlan', count:18, color:'#d97706'},
-    {name:'MyP', count:8, color:'#dc2626'},
+    {name:'IntelliSight Platform', count: hotels.filter(h => h.is).length, color:'#0891b2'},
+    {name:'REC', count: hotels.filter(h => h.rec).length, color:'#059669'},
+    {name:'DigiAudit Plus', count: hotels.filter(h => h.da).length, color:'#3b6ef0'},
+    {name:'TruePlan', count: hotels.filter(h => h.tp).length, color:'#d97706'},
+    {name:'MyP', count: hotels.filter(h => h.myp).length, color:'#dc2626'},
   ];
   document.getElementById('prodList').innerHTML = prods.map(p => `
     <div class="prod-row">
       <div class="prod-name">${p.name}</div>
-      <div class="prod-bar-wrap"><div class="prod-bar" style="width:${Math.round(p.count/79*100)}%;background:${p.color}"></div></div>
-      <div class="prod-pct">${Math.round(p.count/79*100)}%</div>
+      <div class="prod-bar-wrap"><div class="prod-bar" style="width:${Math.round(p.count/total*100)}%;background:${p.color}"></div></div>
+      <div class="prod-pct">${Math.round(p.count/total*100)}%</div>
       <div class="prod-count">${p.count}</div>
     </div>`).join('');
 }
@@ -1705,8 +1715,8 @@ function initCharts() {
     options: { responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>['Paid','Not Paid','N/A'][c.dataIndex]+': '+c.raw}}} }
   });
 
-  // Upsell — grouped revenue bars (Active ARR vs Upsell Opportunity ARR)
-  new Chart(document.getElementById('upsellChart'), {
+  // Upsell chart — stored so we can update it later
+  window.chartUpsell = new Chart(document.getElementById('upsellChart'), {
     type: 'bar',
     plugins: [ChartDataLabels],
     data: {
@@ -1717,18 +1727,14 @@ function initCharts() {
           data: [678, 783, 795, 295.2, 98.4],
           backgroundColor: 'rgba(59,110,240,0.22)',
           borderColor: 'rgba(59,110,240,0.4)',
-          borderWidth: 0,
-          borderRadius: 0,
-          borderSkipped: true,
-          stack: 'stack'
+          borderWidth: 0, borderRadius: 0, borderSkipped: true, stack: 'stack'
         },
         {
           label: 'Upsell opportunity',
           data: [186.6, 81.6, 69.6, 569.4, 766.2],
           backgroundColor: '#3b6ef0',
           borderRadius: { topLeft: 3, topRight: 3, bottomLeft: 0, bottomRight: 0 },
-          borderSkipped: false,
-          stack: 'stack'
+          borderSkipped: false, stack: 'stack'
         }
       ]
     },
@@ -1737,43 +1743,23 @@ function initCharts() {
       layout: { padding: { top: 4 } },
       plugins: {
         legend: { display: false },
-        tooltip: {
-          mode: 'index',
-          callbacks: {
-            label: c => `${c.dataset.label}: $${c.raw.toLocaleString()}K`
-          }
-        },
+        tooltip: { mode: 'index', callbacks: { label: c => `${c.dataset.label}: $${c.raw.toLocaleString()}K` } },
         datalabels: {
-          anchor: 'center',
-          align: 'center',
-          clip: true,
-          formatter: function(v, ctx) {
-            if (v < 50) return '';
-            return '$' + (Math.round(v * 10) / 10) + 'K';
-          },
+          anchor: 'center', align: 'center', clip: true,
+          formatter: function(v) { if (v < 50) return ''; return '$' + (Math.round(v * 10) / 10) + 'K'; },
           font: { size: 9, weight: '600', family: "'DM Mono', monospace" },
-          color: function(ctx) {
-            return ctx.datasetIndex === 1 ? '#ffffff' : '#2558d9';
-          }
+          color: function(ctx) { return ctx.datasetIndex === 1 ? '#ffffff' : '#2558d9'; }
         }
       },
       scales: {
-        x: {
-          stacked: true,
-          ticks: {color:textColor, font:{size:10}},
-          grid: {display:false}
-        },
-        y: {
-          stacked: true,
-          ticks: {color:textColor, font:{size:10}, callback: v => '$'+v+'K'},
-          grid: {color:gridColor}
-        }
+        x: { stacked: true, ticks: {color:textColor, font:{size:10}}, grid: {display:false} },
+        y: { stacked: true, ticks: {color:textColor, font:{size:10}, callback: v => '$'+v+'K'}, grid: {color:gridColor} }
       }
     }
   });
 
-  // Product mix by customer (grouped)
-  new Chart(document.getElementById('productMixChart'), {
+  // Product mix chart — stored so we can update it later
+  window.chartProductMix = new Chart(document.getElementById('productMixChart'), {
     type: 'bar',
     data: {
       labels: ['Stonehill','Solar','Rotana','Highgate','Distinction','HighTech','Pinnacle','Lunar','Belmond','Village'],
@@ -1794,6 +1780,35 @@ function initCharts() {
       }
     }
   });
+}
+
+function updateProductCharts(filteredHotels) {
+  const hotels = filteredHotels || DATA.hotels;
+
+  // Update upsell chart
+  if (window.chartUpsell) {
+    const avgArr = 12000;
+    const prods = ['da','rec','is','tp','myp'];
+    const activeArr = prods.map(p => +(hotels.filter(h => h[p]).length * avgArr / 1000).toFixed(1));
+    const total = hotels.length;
+    const upsellArr = prods.map((p, i) => +(((total - hotels.filter(h => h[p]).length) * avgArr) / 1000).toFixed(1));
+    window.chartUpsell.data.datasets[0].data = activeArr;
+    window.chartUpsell.data.datasets[1].data = upsellArr;
+    window.chartUpsell.update();
+  }
+
+  // Update product mix chart
+  if (window.chartProductMix) {
+    // Get unique customers from filtered hotels
+    const customers = [...new Set(hotels.map(h => h.customer))];
+    const shortNames = customers.map(c => c.split(' ')[0]);
+    window.chartProductMix.data.labels = shortNames;
+    const prodKeys = ['da','rec','is','tp','myp'];
+    window.chartProductMix.data.datasets.forEach((ds, i) => {
+      ds.data = customers.map(c => hotels.filter(h => h.customer === c && h[prodKeys[i]]).length);
+    });
+    window.chartProductMix.update();
+  }
 }
 
 // Track which reminders were sent in this session (not pre-seeded history)
@@ -2076,7 +2091,7 @@ function buildSuspendLists(filteredHotels) {
   const source = filteredHotels ? filteredHotels.filter(h => h.days) : overdueHotels;
   const supportEl = document.getElementById('supportSuspendList');
   const serviceEl = document.getElementById('serviceSuspendList');
-  const supportCandidates = source.filter(h => h.days >= 120);
+  const supportCandidates = source.filter(h => h.days >= 60);
   const serviceCandidates = source.filter(h => h.days >= 60);
 
   function suspendRow(h, type) {
@@ -2107,7 +2122,7 @@ function buildSuspendLists(filteredHotels) {
   if (supportCandidates.length) {
     supportEl.innerHTML = supportCandidates.map(h => suspendRow(h, 'support')).join('');
   } else {
-    supportEl.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0">No hotels at 120+ days overdue.</div>';
+    supportEl.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0">No hotels at 60+ days overdue.</div>';
   }
 
   if (serviceCandidates.length) {
@@ -2123,40 +2138,57 @@ function toggleSuspend(code, type, val) {
   buildSuspendLists();
 }
 
+function selectAllSuspend(type, val) {
+  overdueHotels.forEach(h => {
+    if (!suspendState[h.code]) suspendState[h.code] = {supportSelected:false, serviceSelected:false, supportDone:false, serviceDone:false};
+    if (type === 'support' && !suspendState[h.code].supportDone) suspendState[h.code].supportSelected = val;
+    if (type === 'service' && !suspendState[h.code].serviceDone) suspendState[h.code].serviceSelected = val;
+  });
+  buildSuspendLists();
+}
+
 let suspensionHistory = [];
 
 function bulkAction(type, skipPreview) {
   const candidates = type === 'support'
-    ? overdueHotels.filter(h => h.days >= 120 && suspendState[h.code].supportSelected && !suspendState[h.code].supportDone)
+    ? overdueHotels.filter(h => h.days >= 60 && suspendState[h.code].supportSelected && !suspendState[h.code].supportDone)
     : overdueHotels.filter(h => h.days >= 60 && suspendState[h.code].serviceSelected && !suspendState[h.code].serviceDone);
 
   if (!candidates.length) { showToast('No hotels selected', 'danger'); return; }
 
-  // For support: show preview first unless already coming from modal
+  // Support: show preview first unless coming from modal
   if (type === 'support' && !skipPreview) {
     previewEmail('support-notice');
     return;
   }
 
-  const label = type === 'support' ? 'Support' : 'Service';
-  const confirmMsg = `${type === 'support' ? 'Send suspension notice email and suspend' : 'Suspend service for'} ${candidates.length} hotel${candidates.length>1?'s':''}? You can resume at any time.`;
-  if (!confirm(confirmMsg)) return;
+  // Execute the suspension directly
+  executeSuspension(type, candidates);
+}
 
-  const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+function executeSuspension(type, candidates) {
+  const label = type === 'support' ? 'Support' : 'Service';
+  const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
   candidates.forEach(h => {
     if (type === 'support') suspendState[h.code].supportDone = true;
     else suspendState[h.code].serviceDone = true;
     const email = getEmail(h.customer);
-    suspensionHistory.unshift({id: Date.now() + Math.random(), hotel: h.hotel, customer: h.customer, code: h.code, type: label, typeKey: type, email, time: now, status: 'Suspended', resumed: false, noticeSent: type === 'support'});
+    suspensionHistory.unshift({
+      id: Date.now() + Math.random(),
+      hotel: h.hotel, customer: h.customer, code: h.code,
+      type: label, typeKey: type, email, time: now,
+      status: 'Suspended', resumed: false, noticeSent: true
+    });
     const logMsg = type === 'support'
       ? `<strong>${h.hotel}</strong> — support suspension notice sent to ${email} · support suspended`
-      : `<strong>${h.hotel}</strong> — Service suspended · notified ${email}`;
+      : `<strong>${h.hotel}</strong> — Service suspension notice sent to ${email} · full platform access removed`;
     addLog(logMsg, type === 'service' ? 'var(--red)' : 'var(--amber)');
   });
 
   const toastMsg = type === 'support'
-    ? `Notice sent & support suspended for ${candidates.length} hotel${candidates.length>1?'s':''}` 
-    : `${candidates.length} service suspension${candidates.length>1?'s':''} initiated`;
+    ? `Notice sent & support suspended for ${candidates.length} hotel${candidates.length>1?'s':''}`
+    : `Service suspended for ${candidates.length} hotel${candidates.length>1?'s':''} — notification sent`;
   showToast(toastMsg, type === 'service' ? 'danger' : 'success');
   buildSuspendLists();
   renderSuspensionHistory();
@@ -2267,7 +2299,7 @@ function getSupportNoticeTemplate(hotel, customer, email, days) {
     subject: `Important Notice: Support Services Suspension — ${customer}`,
     body: `
       <p>Dear ${customer} Team,</p>
-      <p>We are writing to formally notify you that due to a <strong>balance remaining outstanding for ${days} days</strong>, support services for the property listed below will be suspended unless payment is received within <strong>7 business days</strong> of this notice.</p>
+      <p>We are writing to formally notify you that due to a <strong>balance remaining outstanding for over 60 days</strong>, support services for the property listed below will be suspended unless payment is received within <strong>7 business days</strong> of this notice.</p>
       <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:12px">
         <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Property</td><td style="padding:8px 12px;border:1px solid var(--border);font-weight:500">${hotel}</td></tr>
         <tr><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Account status</td><td style="padding:8px 12px;border:1px solid var(--border);color:var(--red);font-weight:500">${days} days overdue</td></tr>
@@ -2277,6 +2309,27 @@ function getSupportNoticeTemplate(hotel, customer, email, days) {
         <p style="margin:0;font-size:12px;color:var(--red)"><strong>What this means:</strong> If payment is not received by the date above, your ability to raise new support tickets and access live support will be paused until the account is brought current.</p>
       </div>
       <p>To resolve this immediately, please contact your account manager or reply to this email with your remittance advice. We are happy to arrange a call to discuss payment options.</p>
+      <p style="margin-top:24px">Regards,<br><strong>Otelier Accounts Team</strong><br><span style="color:var(--text3);font-size:11px">accounts\u0040otelier.io</span></p>
+    `
+  };
+}
+
+function getServiceSuspendTemplate(hotel, customer, email, days) {
+  const suspendDate = new Date(Date.now() + 2*86400000).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+  return {
+    subject: `Urgent: Full Service Suspension — ${customer}`,
+    body: `
+      <p>Dear ${customer} Team,</p>
+      <p>Despite previous reminders and a support suspension notice, the outstanding balance on your account remains unpaid for <strong>${days} days</strong>. We regret to inform you that <strong>full platform access will be suspended</strong> for the property listed below, effective immediately.</p>
+      <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:12px">
+        <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Property</td><td style="padding:8px 12px;border:1px solid var(--border);font-weight:500">${hotel}</td></tr>
+        <tr><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Account status</td><td style="padding:8px 12px;border:1px solid var(--border);color:var(--red);font-weight:500">${days} days overdue</td></tr>
+        <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Suspension effective</td><td style="padding:8px 12px;border:1px solid var(--border);font-weight:500;color:var(--red)">${suspendDate}</td></tr>
+      </table>
+      <div style="background:rgba(220,38,38,0.08);border-left:3px solid var(--red);padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">
+        <p style="margin:0;font-size:12px;color:var(--red)"><strong>What this means:</strong> All access to Otelier products — including REC, IntelliSight, DigiAudit+, TruePlan, and MyP — will be disabled until the full outstanding balance is settled.</p>
+      </div>
+      <p>To restore access immediately, please contact your account manager or settle the balance by replying to this email with your remittance advice. Restoration will be processed within 24 hours of confirmed payment.</p>
       <p style="margin-top:24px">Regards,<br><strong>Otelier Accounts Team</strong><br><span style="color:var(--text3);font-size:11px">accounts\u0040otelier.io</span></p>
     `
   };
@@ -2323,13 +2376,37 @@ function previewEmail(type) {
     document.getElementById('modalSubject').textContent = tmpl.subject;
     document.getElementById('modalBody').innerHTML = tmpl.body;
 
+  } else if (type === 'service-notice') {
+    currentReminderContext = null;
+    document.getElementById('reminderVersionTabs').style.display = 'none';
+
+    const candidates = overdueHotels.filter(h => h.days >= 60 && suspendState[h.code]?.serviceSelected && !suspendState[h.code]?.serviceDone);
+    const first = candidates[0] || overdueHotels.find(h => h.days >= 60);
+    if (!first) { showToast('No hotels selected for service suspension', 'danger'); return; }
+    hotel = first.hotel; customer = first.customer; days = first.days;
+    email = getEmail(customer);
+
+    document.getElementById('modalTitle').textContent = 'Service suspension notice preview';
+    document.getElementById('modalSubtitle').textContent = `Sent to ${candidates.length || 1} hotel${candidates.length !== 1 ? 's' : ''} — full platform access will be removed`;
+    document.getElementById('modalTo').textContent = email;
+    document.getElementById('modalSendBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Suspend selected service';
+    modalSendCallback = () => {
+      const candidates = overdueHotels.filter(h => h.days >= 60 && suspendState[h.code]?.serviceSelected && !suspendState[h.code]?.serviceDone);
+      closeEmailModal();
+      executeSuspension('service', candidates.length ? candidates : overdueHotels.filter(h => h.days >= 60 && !suspendState[h.code]?.serviceDone).slice(0,1));
+    };
+
+    const tmpl = getServiceSuspendTemplate(hotel, customer, email, days);
+    document.getElementById('modalSubject').textContent = tmpl.subject;
+    document.getElementById('modalBody').innerHTML = tmpl.body;
+
   } else {
     // Support notice — no tabs needed
     currentReminderContext = null;
     document.getElementById('reminderVersionTabs').style.display = 'none';
 
-    const candidates = overdueHotels.filter(h => h.days >= 120 && suspendState[h.code]?.supportSelected && !suspendState[h.code]?.supportDone);
-    const first = candidates[0] || overdueHotels.find(h => h.days >= 120);
+    const candidates = overdueHotels.filter(h => h.days >= 60 && suspendState[h.code]?.supportSelected && !suspendState[h.code]?.supportDone);
+    const first = candidates[0] || overdueHotels.find(h => h.days >= 60 && h.days < 120) || overdueHotels.find(h => h.days >= 60);
     if (!first) { showToast('No hotels selected for support suspension', 'danger'); return; }
     hotel = first.hotel; customer = first.customer; days = first.days;
     email = getEmail(customer);
@@ -2338,7 +2415,11 @@ function previewEmail(type) {
     document.getElementById('modalSubtitle').textContent = `Sent to ${candidates.length || 1} hotel${candidates.length !== 1 ? 's' : ''} before suspension is applied`;
     document.getElementById('modalTo').textContent = email;
     document.getElementById('modalSendBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send notice & suspend';
-    modalSendCallback = () => { bulkAction('support', true); closeEmailModal(); };
+    modalSendCallback = () => {
+      const candidates = overdueHotels.filter(h => h.days >= 60 && suspendState[h.code]?.supportSelected && !suspendState[h.code]?.supportDone);
+      closeEmailModal();
+      executeSuspension('support', candidates.length ? candidates : overdueHotels.filter(h => h.days >= 60 && !suspendState[h.code]?.supportDone).slice(0,1));
+    };
 
     const tmpl = getSupportNoticeTemplate(hotel, customer, email, days);
     document.getElementById('modalSubject').textContent = tmpl.subject;
@@ -2527,6 +2608,8 @@ function applyGlobalFilters() {
   applyHotelFilter();
   buildReminderList(filteredHotels);
   buildSuspendLists(filteredHotels);
+  buildProdList(filteredHotels);
+  updateProductCharts(filteredHotels);
 }
 
 function clearGlobalFilters() {
