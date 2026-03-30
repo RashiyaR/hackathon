@@ -2242,11 +2242,13 @@ function getReminderEmailTemplate(reminderNum, hotel, customer, email, days) {
   const dueDate = new Date(Date.now() - days * 86400000).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
   const deadlineDate = new Date(Date.now() + 7*86400000).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
 
+  const tierRange = reminderNum === 1 ? '30–60 days' : reminderNum === 2 ? '61–119 days' : '120+ days';
+
   const detailTable = `
     <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:12px">
       <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Property</td><td style="padding:8px 12px;border:1px solid var(--border);font-weight:500">${hotel}</td></tr>
       <tr><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Invoice due date</td><td style="padding:8px 12px;border:1px solid var(--border)">${dueDate}</td></tr>
-      <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Days overdue</td><td style="padding:8px 12px;border:1px solid var(--border);color:var(--red);font-weight:500">${days} days</td></tr>
+      <tr style="background:var(--surface2)"><td style="padding:8px 12px;border:1px solid var(--border);color:var(--text3)">Days overdue</td><td style="padding:8px 12px;border:1px solid var(--border);color:var(--red);font-weight:500">${tierRange}</td></tr>
     </table>`;
 
   if (reminderNum === 1) {
@@ -2268,7 +2270,7 @@ function getReminderEmailTemplate(reminderNum, hotel, customer, email, days) {
       subject: `Second Payment Reminder — Action Required | ${customer}`,
       body: `
         <p>Dear ${customer} Finance Team,</p>
-        <p>We are following up on our previous reminder regarding the outstanding invoice below, which remains <strong>unpaid at ${days} days overdue</strong>.</p>
+        <p>We are following up on our previous reminder regarding the outstanding invoice below, which remains <strong>unpaid at 61–119 days overdue</strong>.</p>
         ${detailTable}
         <p>We kindly ask that you arrange payment as soon as possible to avoid any disruption to your Otelier services. If there is a dispute or issue with the invoice, please let us know and we will work to resolve it promptly.</p>
         <p>Please be aware that continued non-payment may result in support services being placed on hold. We would much prefer to resolve this together before any action is needed.</p>
@@ -2282,7 +2284,7 @@ function getReminderEmailTemplate(reminderNum, hotel, customer, email, days) {
     subject: `Final Payment Notice — Immediate Action Required | ${customer}`,
     body: `
       <p>Dear ${customer} Finance Team,</p>
-      <p>This is our <strong>final notice</strong> regarding the invoice below, which is now <strong>${days} days overdue</strong>. Despite previous communications, the balance remains outstanding.</p>
+      <p>This is our <strong>final notice</strong> regarding the invoice below, which is now <strong>120+ days overdue</strong>. Despite previous communications, the balance remains outstanding.</p>
       ${detailTable}
       <div style="background:rgba(220,38,38,0.06);border-left:3px solid var(--red);padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">
         <p style="margin:0;font-size:12px;color:var(--red)"><strong>Important:</strong> If payment is not received by <strong>${deadlineDate}</strong>, we will have no choice but to suspend support services on your account until the outstanding balance is cleared.</p>
